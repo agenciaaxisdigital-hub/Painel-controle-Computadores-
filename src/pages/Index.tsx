@@ -326,7 +326,7 @@ const Index = () => {
 
                 <iframe
                   key={iframeKey}
-                  src={getMachineUrl(activeMachine)}
+                  src={`${getMachineUrl(activeMachine)}${authToken ? `/?auth=${encodeURIComponent(authToken)}` : ''}`}
                   className="absolute inset-0 w-full h-full border-0"
                   title={`Arquivos — ${activeMachine.name}`}
                   sandbox="allow-same-origin allow-scripts allow-forms allow-popups"
