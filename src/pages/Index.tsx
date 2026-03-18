@@ -67,14 +67,8 @@ const Index = () => {
   }, []);
 
   const openPanel = (machine: Machine) => {
-    if (!canEmbedInPanel) {
-      window.open(getMachineUrl(machine), "_blank", "noopener,noreferrer");
-      return;
-    }
-
     setActiveMachine(machine);
     setIsFullscreen(false);
-    setIframeKey((k) => k + 1);
   };
 
   const formatDate = (d: Date) =>
