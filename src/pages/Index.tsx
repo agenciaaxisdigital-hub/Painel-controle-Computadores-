@@ -28,19 +28,35 @@ const Index = () => {
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [iframeKey, setIframeKey] = useState(0);
 
+  const isPublicHttps =
+    typeof window !== "undefined" &&
+    window.location.protocol === "https:" &&
+    !["localhost", "127.0.0.1"].includes(window.location.hostname);
+
+  const canEmbedInPanel = !isPublicHttps;
+  const getMachineUrl = (machine: Machine) => `http://${machine.ip}:8080`;
+
   useEffect(() => {
     const t = setInterval(() => setNow(new Date()), 1000);
     return () => clearInterval(t);
   }, []);
 
   const checkStatuses = async () => {
+    if (!canEmbedInPanel) {
+      const fallback: Record<string, "online" | "offline" | "checking"> = {};
+      machines.forEach((m) => (fallback[m.ip] = "checking"));
+      setStatuses(fallback);
+      setLastCheck(new Date());
+      return;
+    }
+
     const results: Record<string, "online" | "offline" | "checking"> = {};
     await Promise.all(
       machines.map(async (m) => {
         try {
           const controller = new AbortController();
           const timeout = setTimeout(() => controller.abort(), 5000);
-          await fetch(`http://${m.ip}:8080`, { mode: "no-cors", signal: controller.signal });
+          await fetch(getMachineUrl(m), { mode: "no-cors", signal: controller.signal });
           clearTimeout(timeout);
           results[m.ip] = "online";
         } catch {
@@ -59,6 +75,11 @@ const Index = () => {
   }, []);
 
   const openPanel = (machine: Machine) => {
+    if (!canEmbedInPanel) {
+      window.open(getMachineUrl(machine), "_blank", "noopener,noreferrer");
+      return;
+    }
+
     setActiveMachine(machine);
     setIsFullscreen(false);
     setIframeKey((k) => k + 1);
@@ -94,7 +115,6 @@ const Index = () => {
 
   return (
     <div className="min-h-screen bg-background text-foreground flex flex-col relative overflow-hidden">
-      {/* Gradient background glow */}
       <div
         className="fixed top-0 left-0 w-full h-80 pointer-events-none opacity-20"
         style={{
@@ -102,7 +122,6 @@ const Index = () => {
         }}
       />
 
-      {/* Header */}
       <motion.header
         className="border-b border-border px-6 py-5 z-10 relative"
         initial={{ opacity: 0, y: -20 }}
@@ -120,12 +139,8 @@ const Index = () => {
               <Shield className="text-primary-foreground" size={26} />
             </motion.div>
             <div>
-              <h1 className="text-xl sm:text-2xl font-bold tracking-tight">
-                Painel de Controle
-              </h1>
-              <p className="text-sm text-muted-foreground">
-                Dra. Fernanda Sarelli — Rede Corporativa
-              </p>
+              <h1 className="text-xl sm:text-2xl font-bold tracking-tight">Painel de Controle</h1>
+              <p className="text-sm text-muted-foreground">Dra. Fernanda Sarelli — Rede Corporativa</p>
             </div>
           </div>
           <div className="flex flex-col items-end gap-0.5">
@@ -143,14 +158,16 @@ const Index = () => {
         </div>
       </motion.header>
 
-      {/* Grid */}
+      {isPublicHttps && (
+        <div className="max-w-5xl mx-auto px-6 pt-4 w-full">
+          <div className="rounded-lg border border-border bg-secondary/40 px-4 py-3 text-sm text-muted-foreground">
+            Domínio público (HTTPS) bloqueia acesso interno por iframe. O botão <span className="text-primary font-medium">Ver Arquivos</span> abrirá em nova aba para funcionar sem erro.
+          </div>
+        </div>
+      )}
+
       <main className="max-w-5xl mx-auto px-6 py-10 flex-1 w-full">
-        <motion.div
-          className="grid grid-cols-1 sm:grid-cols-2 gap-6"
-          variants={containerVariants}
-          initial="hidden"
-          animate="show"
-        >
+        <motion.div className="grid grid-cols-1 sm:grid-cols-2 gap-6" variants={containerVariants} initial="hidden" animate="show">
           {machines.map((m) => {
             const s = statuses[m.ip] ?? "checking";
             const si = statusInfo(s);
@@ -158,7 +175,6 @@ const Index = () => {
               <motion.div key={m.ip} variants={cardVariants}>
                 <motion.div whileHover={{ scale: 1.03, y: -4 }} transition={{ type: "spring", stiffness: 300, damping: 20 }}>
                   <Card className="bg-card border-border hover:border-primary/50 transition-all duration-300 hover:shadow-lg hover:shadow-primary/10 relative overflow-hidden">
-                    {/* Top accent line */}
                     <div
                       className="absolute top-0 left-0 right-0 h-0.5"
                       style={{ background: "linear-gradient(90deg, transparent, hsl(340 82% 60%), transparent)" }}
@@ -166,11 +182,7 @@ const Index = () => {
                     <CardContent className="p-6 flex flex-col gap-4">
                       <div className="flex items-start justify-between">
                         <div className="flex items-center gap-3">
-                          <motion.div
-                            className="p-3 rounded-xl bg-primary/10 border border-primary/20"
-                            whileHover={{ rotate: [0, -10, 10, 0] }}
-                            transition={{ duration: 0.5 }}
-                          >
+                          <motion.div className="p-3 rounded-xl bg-primary/10 border border-primary/20" whileHover={{ rotate: [0, -10, 10, 0] }} transition={{ duration: 0.5 }}>
                             <Monitor className="text-primary" size={26} />
                           </motion.div>
                           <div>
@@ -179,21 +191,13 @@ const Index = () => {
                           </div>
                         </div>
                         <div className="flex items-center gap-2">
-                          <motion.span
-                            className={`h-3 w-3 rounded-full ${statusDot(s)}`}
-                            animate={s === "online" ? { scale: [1, 1.3, 1] } : {}}
-                            transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
-                          />
+                          <motion.span className={`h-3 w-3 rounded-full ${statusDot(s)}`} animate={s === "online" ? { scale: [1, 1.3, 1] } : {}} transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }} />
                           <span className={`text-xs font-medium ${si.cls}`}>{si.text}</span>
                         </div>
                       </div>
 
                       <div className="mt-2">
-                        <Button
-                          className="w-full gap-2 font-medium"
-                          style={{ background: "linear-gradient(135deg, hsl(340 82% 55%), hsl(340 72% 45%))" }}
-                          onClick={() => openPanel(m)}
-                        >
+                        <Button className="w-full gap-2 font-medium" style={{ background: "linear-gradient(135deg, hsl(340 82% 55%), hsl(340 72% 45%))" }} onClick={() => openPanel(m)}>
                           <FolderOpen size={16} />
                           Ver Arquivos
                         </Button>
@@ -207,31 +211,17 @@ const Index = () => {
         </motion.div>
       </main>
 
-      {/* Footer */}
-      <motion.footer
-        className="border-t border-border px-6 py-4 z-10"
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ delay: 0.5 }}
-      >
+      <motion.footer className="border-t border-border px-6 py-4 z-10" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.5 }}>
         <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-2 text-sm text-muted-foreground">
           <p>Rede protegida via ZeroTier | 4 dispositivos monitorados</p>
           <p>Última atualização: {lastCheck ? formatTime(lastCheck) : "Verificando..."}</p>
         </div>
       </motion.footer>
 
-      {/* Painel embutido */}
       <AnimatePresence mode="wait">
         {activeMachine && (
           <>
-            <motion.div
-              className="fixed inset-0 z-40"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              transition={{ duration: 0.4 }}
-              onClick={() => setActiveMachine(null)}
-            >
+            <motion.div className="fixed inset-0 z-40" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.4 }} onClick={() => setActiveMachine(null)}>
               <div className="absolute inset-0 bg-black/70 backdrop-blur-md" />
             </motion.div>
 
@@ -245,7 +235,6 @@ const Index = () => {
               exit={{ x: "110%", opacity: 0, scale: 0.9 }}
               transition={{ type: "spring", stiffness: 200, damping: 28, mass: 0.8 }}
             >
-              {/* Top accent */}
               <motion.div
                 className="absolute top-0 left-0 right-0 h-0.5 z-10"
                 style={{ background: "linear-gradient(90deg, transparent, hsl(340 82% 60%), transparent)" }}
@@ -254,26 +243,12 @@ const Index = () => {
                 transition={{ delay: 0.3, duration: 0.6, ease: "easeOut" }}
               />
 
-              <motion.div
-                className="flex items-center justify-between px-5 py-3 border-b border-border bg-secondary/30 shrink-0"
-                initial={{ opacity: 0, y: -10 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.15, duration: 0.3 }}
-              >
+              <motion.div className="flex items-center justify-between px-5 py-3 border-b border-border bg-secondary/30 shrink-0" initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.15, duration: 0.3 }}>
                 <div className="flex items-center gap-3">
-                  <motion.div
-                    className="p-2 rounded-lg bg-primary/15"
-                    initial={{ scale: 0 }}
-                    animate={{ scale: 1 }}
-                    transition={{ delay: 0.2, type: "spring", stiffness: 300 }}
-                  >
+                  <motion.div className="p-2 rounded-lg bg-primary/15" initial={{ scale: 0 }} animate={{ scale: 1 }} transition={{ delay: 0.2, type: "spring", stiffness: 300 }}>
                     <FolderOpen className="text-primary" size={18} />
                   </motion.div>
-                  <motion.div
-                    initial={{ opacity: 0, x: -10 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    transition={{ delay: 0.25 }}
-                  >
+                  <motion.div initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.25 }}>
                     <h3 className="font-semibold text-sm">
                       {activeMachine.name}
                       <span className="text-muted-foreground font-normal ml-2">— Arquivos</span>
@@ -281,12 +256,7 @@ const Index = () => {
                     <p className="text-xs text-muted-foreground font-mono">{activeMachine.ip}:8080</p>
                   </motion.div>
                 </div>
-                <motion.div
-                  className="flex items-center gap-1"
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  transition={{ delay: 0.3 }}
-                >
+                <motion.div className="flex items-center gap-1" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.3 }}>
                   <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => setIframeKey((k) => k + 1)} title="Recarregar">
                     <RefreshCw size={14} />
                   </Button>
@@ -299,41 +269,22 @@ const Index = () => {
                 </motion.div>
               </motion.div>
 
-              <motion.div
-                className="flex-1 relative bg-secondary/10"
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                transition={{ delay: 0.35, duration: 0.4 }}
-              >
-                <motion.div
-                  className="absolute inset-0 flex flex-col items-center justify-center gap-4 z-10 pointer-events-none"
-                  initial={{ opacity: 1 }}
-                  animate={{ opacity: 0 }}
-                  transition={{ delay: 2, duration: 0.5 }}
-                >
-                  <motion.div
-                    className="w-12 h-12 rounded-full border-2 border-primary/30 border-t-primary"
-                    animate={{ rotate: 360 }}
-                    transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
-                  />
+              <motion.div className="flex-1 relative bg-secondary/10" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.35, duration: 0.4 }}>
+                <motion.div className="absolute inset-0 flex flex-col items-center justify-center gap-4 z-10 pointer-events-none" initial={{ opacity: 1 }} animate={{ opacity: 0 }} transition={{ delay: 2, duration: 0.5 }}>
+                  <motion.div className="w-12 h-12 rounded-full border-2 border-primary/30 border-t-primary" animate={{ rotate: 360 }} transition={{ duration: 1, repeat: Infinity, ease: "linear" }} />
                   <p className="text-sm text-muted-foreground">Conectando a {activeMachine.name}...</p>
                 </motion.div>
 
                 <iframe
                   key={iframeKey}
-                  src={`http://${activeMachine.ip}:8080`}
+                  src={getMachineUrl(activeMachine)}
                   className="absolute inset-0 w-full h-full border-0"
                   title={`Arquivos — ${activeMachine.name}`}
                   sandbox="allow-same-origin allow-scripts allow-forms allow-popups"
                 />
               </motion.div>
 
-              <motion.div
-                className="px-4 py-2 border-t border-border bg-secondary/20 flex items-center justify-between text-xs text-muted-foreground shrink-0"
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.4 }}
-              >
+              <motion.div className="px-4 py-2 border-t border-border bg-secondary/20 flex items-center justify-between text-xs text-muted-foreground shrink-0" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.4 }}>
                 <span>Dra. Fernanda Sarelli • Rede ZeroTier • {activeMachine.ip}</span>
                 <span>{formatTime(now)}</span>
               </motion.div>
