@@ -11,7 +11,7 @@ interface Machine {
 
 const machines: Machine[] = [
   { name: "PC01", ip: "10.168.249.15" },
-  { name: "PC Maria", ip: "10.168.249.80" },
+  { name: "PC02 - Maria", ip: "10.168.249.80" },
   { name: "PC03", ip: "10.168.249.101" },
   { name: "PC Recepção", ip: "10.168.249.175" },
 ];
