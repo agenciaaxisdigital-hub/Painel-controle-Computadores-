@@ -11,8 +11,9 @@ interface Machine {
 }
 
 const machines: Machine[] = [
+  { name: "Administrador", ip: "10.168.249.176" },
   { name: "PC01", ip: "10.168.249.15" },
-  { name: "PC02 - Maria", ip: "10.168.249.80" },
+  { name: "PC02 - Policial Maria", ip: "10.168.249.80" },
   { name: "PC03", ip: "10.168.249.101" },
   { name: "PC04 - Recepção", ip: "10.168.249.175" },
 ];
@@ -199,7 +200,7 @@ const Index = () => {
 
       <motion.footer className="border-t border-border px-6 py-4 z-10" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.5 }}>
         <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-2 text-sm text-muted-foreground">
-          <p>Rede protegida via ZeroTier | 4 dispositivos monitorados</p>
+          <p>Rede protegida via ZeroTier | 5 dispositivos monitorados</p>
           <p>Última atualização: {lastCheck ? formatTime(lastCheck) : "Verificando..."}</p>
         </div>
       </motion.footer>
