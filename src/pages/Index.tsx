@@ -182,10 +182,12 @@ const Index = () => {
                             <p className="text-sm text-muted-foreground font-mono">{m.ip}</p>
                           </div>
                         </div>
-                        <div className="flex items-center gap-2">
-                          <motion.span className={`h-3 w-3 rounded-full ${statusDot(s)}`} animate={s === "online" ? { scale: [1, 1.3, 1] } : {}} transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }} />
-                          <span className={`text-xs font-medium ${si.cls}`}>{si.text}</span>
-                        </div>
+                        {s === "online" && (
+                          <div className="flex items-center gap-2">
+                            <motion.span className={`h-3 w-3 rounded-full ${statusDot(s)}`} animate={{ scale: [1, 1.3, 1] }} transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }} />
+                            <span className={`text-xs font-medium ${si.cls}`}>{si.text}</span>
+                          </div>
+                        )}
                       </div>
 
                       <div className="mt-2">
