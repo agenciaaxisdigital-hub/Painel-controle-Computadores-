@@ -172,21 +172,13 @@ const Index = () => {
                         </div>
                       </div>
 
-                      <div className="flex gap-3 mt-2">
+                      <div className="mt-2">
                         <Button
-                          variant="secondary"
-                          className="flex-1 gap-2"
+                          className="w-full gap-2"
                           onClick={() => openPanel(m, "files")}
                         >
                           <FolderOpen size={16} />
                           Ver Arquivos
-                        </Button>
-                        <Button
-                          className="flex-1 gap-2"
-                          onClick={() => openPanel(m, "access")}
-                        >
-                          <ExternalLink size={16} />
-                          Acessar
                         </Button>
                       </div>
                     </CardContent>
