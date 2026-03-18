@@ -268,6 +268,34 @@ const Index = () => {
             );
           })}
         </motion.div>
+
+        {/* Bloco de Anotações */}
+        <motion.div
+          className="mt-8"
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.4, duration: 0.5 }}
+        >
+          <Card className="bg-card border-border overflow-hidden">
+            <div
+              className="h-0.5"
+              style={{ background: "linear-gradient(90deg, transparent, hsl(340 82% 60%), transparent)" }}
+            />
+            <CardContent className="p-6">
+              <div className="flex items-center gap-2 mb-3">
+                <span className="text-lg">📝</span>
+                <h2 className="font-semibold text-base">Anotações</h2>
+              </div>
+              <textarea
+                value={notes}
+                onChange={(e) => handleNotesChange(e.target.value)}
+                placeholder="Escreva suas anotações aqui..."
+                className="w-full min-h-[120px] px-4 py-3 rounded-lg bg-secondary/40 border border-border text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary/50 transition-all resize-y text-sm leading-relaxed"
+              />
+              <p className="text-xs text-muted-foreground mt-2">As anotações são salvas automaticamente neste navegador.</p>
+            </CardContent>
+          </Card>
+        </motion.div>
       </main>
 
       <motion.footer className="border-t border-border px-6 py-4 z-10" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.5 }}>
