@@ -34,6 +34,8 @@ const Index = () => {
     !["localhost", "127.0.0.1"].includes(window.location.hostname);
 
   const canEmbedInPanel = !isPublicHttps;
+  const FB_USER = "admin";
+  const FB_PASS = "MinhaSenh@123";
   const getMachineUrl = (machine: Machine) => `http://${machine.ip}:8080`;
 
   useEffect(() => {
