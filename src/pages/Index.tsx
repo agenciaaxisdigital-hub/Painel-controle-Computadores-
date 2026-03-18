@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Monitor, FolderOpen, ExternalLink, Wifi, X, Maximize2, Minimize2, RefreshCw } from "lucide-react";
+import { Monitor, FolderOpen, X, Maximize2, Minimize2, RefreshCw, Shield } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 
 interface Machine {
@@ -25,7 +25,6 @@ const Index = () => {
   });
   const [lastCheck, setLastCheck] = useState<Date | null>(null);
   const [activeMachine, setActiveMachine] = useState<Machine | null>(null);
-  const [panelMode, setPanelMode] = useState<"files" | "access">("access");
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [iframeKey, setIframeKey] = useState(0);
 
@@ -59,9 +58,8 @@ const Index = () => {
     return () => clearInterval(t);
   }, []);
 
-  const openPanel = (machine: Machine, mode: "files" | "access") => {
+  const openPanel = (machine: Machine) => {
     setActiveMachine(machine);
-    setPanelMode(mode);
     setIsFullscreen(false);
     setIframeKey((k) => k + 1);
   };
@@ -84,10 +82,9 @@ const Index = () => {
     return { text: "Verificando...", cls: "text-muted-foreground" };
   };
 
-  // Stagger animation for cards
   const containerVariants = {
     hidden: {},
-    show: { transition: { staggerChildren: 0.08 } },
+    show: { transition: { staggerChildren: 0.1 } },
   };
 
   const cardVariants = {
@@ -97,45 +94,59 @@ const Index = () => {
 
   return (
     <div className="min-h-screen bg-background text-foreground flex flex-col relative overflow-hidden">
+      {/* Gradient background glow */}
+      <div
+        className="fixed top-0 left-0 w-full h-80 pointer-events-none opacity-20"
+        style={{
+          background: "radial-gradient(ellipse at 50% 0%, hsl(340 82% 60% / 0.4) 0%, transparent 70%)",
+        }}
+      />
+
       {/* Header */}
       <motion.header
-        className="border-b border-border px-6 py-5 z-10"
+        className="border-b border-border px-6 py-5 z-10 relative"
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5, ease: "easeOut" }}
       >
-        <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2">
-          <div className="flex items-center gap-3">
+        <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+          <div className="flex items-center gap-4">
             <motion.div
-              className="p-2 rounded-lg bg-primary/10"
-              animate={{ boxShadow: ["0 0 0px hsl(200 80% 50% / 0)", "0 0 20px hsl(200 80% 50% / 0.3)", "0 0 0px hsl(200 80% 50% / 0)"] }}
+              className="p-2.5 rounded-xl"
+              style={{ background: "linear-gradient(135deg, hsl(340 82% 55%), hsl(340 82% 45%))" }}
+              animate={{ boxShadow: ["0 0 0px hsl(340 82% 60% / 0)", "0 0 25px hsl(340 82% 60% / 0.4)", "0 0 0px hsl(340 82% 60% / 0)"] }}
               transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
             >
-              <Wifi className="text-primary" size={28} />
+              <Shield className="text-primary-foreground" size={26} />
             </motion.div>
             <div>
               <h1 className="text-xl sm:text-2xl font-bold tracking-tight">
-                Painel de Controle — Rede Corporativa
+                Painel de Controle
               </h1>
-              <p className="text-sm text-muted-foreground capitalize">{formatDate(now)}</p>
+              <p className="text-sm text-muted-foreground">
+                Dra. Fernanda Sarelli — Rede Corporativa
+              </p>
             </div>
           </div>
-          <motion.div
-            className="text-3xl sm:text-4xl font-mono font-bold text-primary tabular-nums"
-            key={formatTime(now)}
-            initial={{ opacity: 0.7, scale: 0.98 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ duration: 0.3 }}
-          >
-            {formatTime(now)}
-          </motion.div>
+          <div className="flex flex-col items-end gap-0.5">
+            <motion.div
+              className="text-3xl sm:text-4xl font-mono font-bold text-primary tabular-nums"
+              key={formatTime(now)}
+              initial={{ opacity: 0.7 }}
+              animate={{ opacity: 1 }}
+              transition={{ duration: 0.3 }}
+            >
+              {formatTime(now)}
+            </motion.div>
+            <p className="text-xs text-muted-foreground capitalize">{formatDate(now)}</p>
+          </div>
         </div>
       </motion.header>
 
       {/* Grid */}
-      <main className="max-w-7xl mx-auto px-6 py-8 flex-1 w-full">
+      <main className="max-w-5xl mx-auto px-6 py-10 flex-1 w-full">
         <motion.div
-          className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6"
+          className="grid grid-cols-1 sm:grid-cols-2 gap-6"
           variants={containerVariants}
           initial="hidden"
           animate="show"
@@ -146,16 +157,21 @@ const Index = () => {
             return (
               <motion.div key={m.ip} variants={cardVariants}>
                 <motion.div whileHover={{ scale: 1.03, y: -4 }} transition={{ type: "spring", stiffness: 300, damping: 20 }}>
-                  <Card className="bg-card border-border hover:border-primary/50 transition-all duration-300 hover:shadow-lg hover:shadow-primary/5">
+                  <Card className="bg-card border-border hover:border-primary/50 transition-all duration-300 hover:shadow-lg hover:shadow-primary/10 relative overflow-hidden">
+                    {/* Top accent line */}
+                    <div
+                      className="absolute top-0 left-0 right-0 h-0.5"
+                      style={{ background: "linear-gradient(90deg, transparent, hsl(340 82% 60%), transparent)" }}
+                    />
                     <CardContent className="p-6 flex flex-col gap-4">
                       <div className="flex items-start justify-between">
                         <div className="flex items-center gap-3">
                           <motion.div
-                            className="p-3 rounded-xl bg-secondary"
+                            className="p-3 rounded-xl bg-primary/10 border border-primary/20"
                             whileHover={{ rotate: [0, -10, 10, 0] }}
                             transition={{ duration: 0.5 }}
                           >
-                            <Monitor className="text-primary" size={28} />
+                            <Monitor className="text-primary" size={26} />
                           </motion.div>
                           <div>
                             <h2 className="font-semibold text-lg leading-tight">{m.name}</h2>
@@ -174,8 +190,9 @@ const Index = () => {
 
                       <div className="mt-2">
                         <Button
-                          className="w-full gap-2"
-                          onClick={() => openPanel(m, "files")}
+                          className="w-full gap-2 font-medium"
+                          style={{ background: "linear-gradient(135deg, hsl(340 82% 55%), hsl(340 72% 45%))" }}
+                          onClick={() => openPanel(m)}
                         >
                           <FolderOpen size={16} />
                           Ver Arquivos
@@ -195,7 +212,7 @@ const Index = () => {
         className="border-t border-border px-6 py-4 z-10"
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
-        transition={{ delay: 0.6 }}
+        transition={{ delay: 0.5 }}
       >
         <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-2 text-sm text-muted-foreground">
           <p>Rede protegida via ZeroTier | 4 dispositivos monitorados</p>
@@ -207,7 +224,6 @@ const Index = () => {
       <AnimatePresence mode="wait">
         {activeMachine && (
           <>
-            {/* Backdrop */}
             <motion.div
               className="fixed inset-0 z-40"
               initial={{ opacity: 0 }}
@@ -216,44 +232,30 @@ const Index = () => {
               transition={{ duration: 0.4 }}
               onClick={() => setActiveMachine(null)}
             >
-              <motion.div
-                className="absolute inset-0 bg-black/70 backdrop-blur-md"
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
-              />
+              <div className="absolute inset-0 bg-black/70 backdrop-blur-md" />
             </motion.div>
 
-            {/* Painel principal */}
             <motion.div
               className={`fixed z-50 flex flex-col overflow-hidden border border-border bg-card ${
-                isFullscreen
-                  ? "inset-3 rounded-2xl"
-                  : "top-3 right-3 bottom-3 rounded-2xl"
+                isFullscreen ? "inset-3 rounded-2xl" : "top-3 right-3 bottom-3 rounded-2xl"
               }`}
               style={!isFullscreen ? { width: "70vw" } : undefined}
               initial={{ x: "110%", opacity: 0, scale: 0.9 }}
               animate={{ x: 0, opacity: 1, scale: 1 }}
               exit={{ x: "110%", opacity: 0, scale: 0.9 }}
-              transition={{
-                type: "spring",
-                stiffness: 200,
-                damping: 28,
-                mass: 0.8,
-              }}
+              transition={{ type: "spring", stiffness: 200, damping: 28, mass: 0.8 }}
             >
-              {/* Glow superior */}
+              {/* Top accent */}
               <motion.div
-                className="absolute top-0 left-0 right-0 h-px"
-                style={{ background: "linear-gradient(90deg, transparent, hsl(var(--primary)), transparent)" }}
+                className="absolute top-0 left-0 right-0 h-0.5 z-10"
+                style={{ background: "linear-gradient(90deg, transparent, hsl(340 82% 60%), transparent)" }}
                 initial={{ scaleX: 0 }}
                 animate={{ scaleX: 1 }}
                 transition={{ delay: 0.3, duration: 0.6, ease: "easeOut" }}
               />
 
-              {/* Barra superior */}
               <motion.div
-                className="flex items-center justify-between px-5 py-3 border-b border-border bg-secondary/30 backdrop-blur-sm shrink-0"
+                className="flex items-center justify-between px-5 py-3 border-b border-border bg-secondary/30 shrink-0"
                 initial={{ opacity: 0, y: -10 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.15, duration: 0.3 }}
@@ -265,11 +267,7 @@ const Index = () => {
                     animate={{ scale: 1 }}
                     transition={{ delay: 0.2, type: "spring", stiffness: 300 }}
                   >
-                    {panelMode === "files" ? (
-                      <FolderOpen className="text-primary" size={18} />
-                    ) : (
-                      <Monitor className="text-primary" size={18} />
-                    )}
+                    <FolderOpen className="text-primary" size={18} />
                   </motion.div>
                   <motion.div
                     initial={{ opacity: 0, x: -10 }}
@@ -278,9 +276,7 @@ const Index = () => {
                   >
                     <h3 className="font-semibold text-sm">
                       {activeMachine.name}
-                      <span className="text-muted-foreground font-normal ml-2">
-                        — {panelMode === "files" ? "Arquivos" : "Acesso Remoto"}
-                      </span>
+                      <span className="text-muted-foreground font-normal ml-2">— Arquivos</span>
                     </h3>
                     <p className="text-xs text-muted-foreground font-mono">{activeMachine.ip}:8080</p>
                   </motion.div>
@@ -291,44 +287,24 @@ const Index = () => {
                   animate={{ opacity: 1 }}
                   transition={{ delay: 0.3 }}
                 >
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="h-8 w-8"
-                    onClick={() => setIframeKey((k) => k + 1)}
-                    title="Recarregar"
-                  >
+                  <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => setIframeKey((k) => k + 1)} title="Recarregar">
                     <RefreshCw size={14} />
                   </Button>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="h-8 w-8"
-                    onClick={() => setIsFullscreen(!isFullscreen)}
-                    title={isFullscreen ? "Reduzir" : "Tela cheia"}
-                  >
+                  <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => setIsFullscreen(!isFullscreen)} title={isFullscreen ? "Reduzir" : "Tela cheia"}>
                     {isFullscreen ? <Minimize2 size={14} /> : <Maximize2 size={14} />}
                   </Button>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="h-8 w-8 hover:bg-destructive/20 hover:text-destructive"
-                    onClick={() => setActiveMachine(null)}
-                    title="Fechar"
-                  >
+                  <Button variant="ghost" size="icon" className="h-8 w-8 hover:bg-destructive/20 hover:text-destructive" onClick={() => setActiveMachine(null)} title="Fechar">
                     <X size={16} />
                   </Button>
                 </motion.div>
               </motion.div>
 
-              {/* Conteúdo — Iframe */}
               <motion.div
                 className="flex-1 relative bg-secondary/10"
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 transition={{ delay: 0.35, duration: 0.4 }}
               >
-                {/* Loading animation */}
                 <motion.div
                   className="absolute inset-0 flex flex-col items-center justify-center gap-4 z-10 pointer-events-none"
                   initial={{ opacity: 1 }}
@@ -347,19 +323,18 @@ const Index = () => {
                   key={iframeKey}
                   src={`http://${activeMachine.ip}:8080`}
                   className="absolute inset-0 w-full h-full border-0"
-                  title={`${panelMode === "files" ? "Arquivos" : "Acesso"} — ${activeMachine.name}`}
+                  title={`Arquivos — ${activeMachine.name}`}
                   sandbox="allow-same-origin allow-scripts allow-forms allow-popups"
                 />
               </motion.div>
 
-              {/* Barra inferior com info */}
               <motion.div
                 className="px-4 py-2 border-t border-border bg-secondary/20 flex items-center justify-between text-xs text-muted-foreground shrink-0"
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.4 }}
               >
-                <span>Conexão via ZeroTier • {activeMachine.ip}</span>
+                <span>Dra. Fernanda Sarelli • Rede ZeroTier • {activeMachine.ip}</span>
                 <span>{formatTime(now)}</span>
               </motion.div>
             </motion.div>
