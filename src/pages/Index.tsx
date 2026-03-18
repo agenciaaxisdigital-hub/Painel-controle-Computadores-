@@ -206,7 +206,7 @@ const Index = () => {
         transition={{ delay: 0.6 }}
       >
         <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-2 text-sm text-muted-foreground">
-          <p>Rede protegida via ZeroTier | 5 dispositivos monitorados</p>
+          <p>Rede protegida via ZeroTier | 4 dispositivos monitorados</p>
           <p>Última atualização: {lastCheck ? formatTime(lastCheck) : "Verificando..."}</p>
         </div>
       </motion.footer>
