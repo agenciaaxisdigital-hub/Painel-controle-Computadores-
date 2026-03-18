@@ -177,10 +177,16 @@ const Index = () => {
                         <Button
                           variant="secondary"
                           className="flex-1 gap-2"
-                          onClick={() => openPanel(m, "files")}
+                          asChild
                         >
-                          <FolderOpen size={16} />
-                          Ver Arquivos
+                          <a
+                            href={`http://${m.ip}:8080`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                          >
+                            <FolderOpen size={16} />
+                            Ver Arquivos
+                          </a>
                         </Button>
                         <Button
                           className="flex-1 gap-2"
