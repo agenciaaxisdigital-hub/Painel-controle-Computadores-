@@ -92,6 +92,7 @@ const Index = () => {
         if (target === "_blank") {
           window.open(authedUrl, "_blank", "noopener,noreferrer");
         } else {
+          setAuthToken(token);
           setActiveMachine(machine);
           setIsFullscreen(false);
           setIframeKey((k) => k + 1);
