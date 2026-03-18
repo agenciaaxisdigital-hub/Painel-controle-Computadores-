@@ -60,7 +60,16 @@ const Index = () => {
     return () => clearInterval(t);
   }, []);
 
+  const isPublicHttps =
+    typeof window !== "undefined" &&
+    window.location.protocol === "https:" &&
+    !["localhost", "127.0.0.1"].includes(window.location.hostname);
+
   const openPanel = (machine: Machine) => {
+    if (isPublicHttps) {
+      window.open(getMachineUrl(machine), "_blank", "noopener,noreferrer");
+      return;
+    }
     setActiveMachine(machine);
     setIsFullscreen(false);
   };
