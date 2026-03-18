@@ -76,15 +76,59 @@ const Index = () => {
     return () => clearInterval(t);
   }, []);
 
-  const openPanel = (machine: Machine) => {
-    if (!canEmbedInPanel) {
-      window.open(getMachineUrl(machine), "_blank", "noopener,noreferrer");
-      return;
+  const autoLoginAndOpen = async (machine: Machine, target: "_blank" | "iframe") => {
+    const baseUrl = getMachineUrl(machine);
+    try {
+      // Tenta obter token de autenticação via API do File Browser
+      const res = await fetch(`${baseUrl}/api/login`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ username: FB_USER, password: FB_PASS }),
+      });
+      if (res.ok) {
+        const token = await res.text();
+        const authedUrl = `${baseUrl}/?auth=${encodeURIComponent(token)}`;
+        if (target === "_blank") {
+          window.open(authedUrl, "_blank", "noopener,noreferrer");
+        } else {
+          setActiveMachine(machine);
+          setIsFullscreen(false);
+          setIframeKey((k) => k + 1);
+        }
+        return;
+      }
+    } catch {
+      // Se falhar (CORS, rede, etc), abre normalmente
     }
 
-    setActiveMachine(machine);
-    setIsFullscreen(false);
-    setIframeKey((k) => k + 1);
+    // Fallback: abre com auto-submit de formulário embutido
+    if (target === "_blank") {
+      const form = document.createElement("form");
+      form.method = "POST";
+      form.action = `${baseUrl}/api/login`;
+      form.target = "_blank";
+      const uField = document.createElement("input");
+      uField.type = "hidden"; uField.name = "username"; uField.value = FB_USER;
+      const pField = document.createElement("input");
+      pField.type = "hidden"; pField.name = "password"; pField.value = FB_PASS;
+      form.appendChild(uField);
+      form.appendChild(pField);
+      document.body.appendChild(form);
+      form.submit();
+      document.body.removeChild(form);
+    } else {
+      setActiveMachine(machine);
+      setIsFullscreen(false);
+      setIframeKey((k) => k + 1);
+    }
+  };
+
+  const openPanel = (machine: Machine) => {
+    if (!canEmbedInPanel) {
+      autoLoginAndOpen(machine, "_blank");
+      return;
+    }
+    autoLoginAndOpen(machine, "iframe");
   };
 
   const formatDate = (d: Date) =>
