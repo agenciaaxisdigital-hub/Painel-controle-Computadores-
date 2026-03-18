@@ -22,9 +22,6 @@ const machines: Machine[] = [
 
 const Index = () => {
   const { toast } = useToast();
-  const [notes, setNotes] = useState(() => {
-    return localStorage.getItem("panel_notes") || "";
-  });
   const [now, setNow] = useState(new Date());
   const [statuses, setStatuses] = useState<Record<string, "online" | "offline" | "checking">>(() => {
     const initial: Record<string, "online" | "offline" | "checking"> = {};
