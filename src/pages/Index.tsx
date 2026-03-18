@@ -20,17 +20,11 @@ const machines: Machine[] = [
   { name: "PC04 - Recepção", ip: "10.168.249.175", anydeskId: "1764644562" },
 ];
 
-const LOGIN_USER = "admin";
-const LOGIN_PASS = "MinhaSenh@123";
-
 const Index = () => {
   const { toast } = useToast();
-  const [isAuthenticated, setIsAuthenticated] = useState(() => {
-    return sessionStorage.getItem("panel_auth") === "true";
+  const [notes, setNotes] = useState(() => {
+    return localStorage.getItem("panel_notes") || "";
   });
-  const [loginUser, setLoginUser] = useState("");
-  const [loginPass, setLoginPass] = useState("");
-  const [loginError, setLoginError] = useState("");
   const [now, setNow] = useState(new Date());
   const [statuses, setStatuses] = useState<Record<string, "online" | "offline" | "checking">>(() => {
     const initial: Record<string, "online" | "offline" | "checking"> = {};
@@ -171,100 +165,10 @@ const Index = () => {
     show: { opacity: 1, y: 0, scale: 1, transition: { type: "spring" as const, stiffness: 200, damping: 20 } },
   };
 
-  const handleLogin = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (loginUser === LOGIN_USER && loginPass === LOGIN_PASS) {
-      setIsAuthenticated(true);
-      sessionStorage.setItem("panel_auth", "true");
-      setLoginError("");
-    } else {
-      setLoginError("Usuário ou senha incorretos.");
-    }
+  const handleNotesChange = (value: string) => {
+    setNotes(value);
+    localStorage.setItem("panel_notes", value);
   };
-
-  if (!isAuthenticated) {
-    return (
-      <div className="min-h-screen bg-background text-foreground flex items-center justify-center relative overflow-hidden">
-        <div
-          className="fixed top-0 left-0 w-full h-80 pointer-events-none opacity-20"
-          style={{
-            background: "radial-gradient(ellipse at 50% 0%, hsl(340 82% 60% / 0.4) 0%, transparent 70%)",
-          }}
-        />
-        <motion.div
-          className="w-[90vw] max-w-sm z-10"
-          initial={{ opacity: 0, y: 30, scale: 0.95 }}
-          animate={{ opacity: 1, y: 0, scale: 1 }}
-          transition={{ type: "spring", stiffness: 200, damping: 20 }}
-        >
-          <Card className="bg-card border-border overflow-hidden">
-            <div
-              className="h-1"
-              style={{ background: "linear-gradient(90deg, transparent, hsl(340 82% 60%), transparent)" }}
-            />
-            <CardContent className="p-8">
-              <div className="flex flex-col items-center gap-4 mb-6">
-                <motion.div
-                  className="p-3 rounded-xl"
-                  style={{ background: "linear-gradient(135deg, hsl(340 82% 55%), hsl(340 82% 45%))" }}
-                  animate={{ boxShadow: ["0 0 0px hsl(340 82% 60% / 0)", "0 0 25px hsl(340 82% 60% / 0.4)", "0 0 0px hsl(340 82% 60% / 0)"] }}
-                  transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
-                >
-                  <Shield className="text-primary-foreground" size={28} />
-                </motion.div>
-                <div className="text-center">
-                  <h1 className="text-xl font-bold">Painel de Controle</h1>
-                  <p className="text-sm text-muted-foreground mt-1">Faça login para acessar</p>
-                </div>
-              </div>
-
-              <form onSubmit={handleLogin} className="space-y-4">
-                <div className="space-y-2">
-                  <label className="text-sm font-medium text-foreground">Usuário</label>
-                  <input
-                    type="text"
-                    value={loginUser}
-                    onChange={(e) => setLoginUser(e.target.value)}
-                    className="w-full px-3 py-2.5 rounded-lg bg-secondary/50 border border-border text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary/50 transition-all"
-                    placeholder="Digite seu usuário"
-                    autoFocus
-                  />
-                </div>
-                <div className="space-y-2">
-                  <label className="text-sm font-medium text-foreground">Senha</label>
-                  <input
-                    type="password"
-                    value={loginPass}
-                    onChange={(e) => setLoginPass(e.target.value)}
-                    className="w-full px-3 py-2.5 rounded-lg bg-secondary/50 border border-border text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary/50 transition-all"
-                    placeholder="Digite sua senha"
-                  />
-                </div>
-
-                {loginError && (
-                  <motion.p
-                    className="text-sm text-destructive text-center"
-                    initial={{ opacity: 0, y: -5 }}
-                    animate={{ opacity: 1, y: 0 }}
-                  >
-                    {loginError}
-                  </motion.p>
-                )}
-
-                <Button
-                  type="submit"
-                  className="w-full font-semibold py-5"
-                  style={{ background: "linear-gradient(135deg, hsl(340 82% 55%), hsl(340 72% 45%))" }}
-                >
-                  Entrar
-                </Button>
-              </form>
-            </CardContent>
-          </Card>
-        </motion.div>
-      </div>
-    );
-  }
 
   return (
     <div className="min-h-screen bg-background text-foreground flex flex-col relative overflow-hidden">
@@ -363,6 +267,34 @@ const Index = () => {
               </motion.div>
             );
           })}
+        </motion.div>
+
+        {/* Bloco de Anotações */}
+        <motion.div
+          className="mt-8"
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.4, duration: 0.5 }}
+        >
+          <Card className="bg-card border-border overflow-hidden">
+            <div
+              className="h-0.5"
+              style={{ background: "linear-gradient(90deg, transparent, hsl(340 82% 60%), transparent)" }}
+            />
+            <CardContent className="p-6">
+              <div className="flex items-center gap-2 mb-3">
+                <span className="text-lg">📝</span>
+                <h2 className="font-semibold text-base">Anotações</h2>
+              </div>
+              <textarea
+                value={notes}
+                onChange={(e) => handleNotesChange(e.target.value)}
+                placeholder="Escreva suas anotações aqui..."
+                className="w-full min-h-[120px] px-4 py-3 rounded-lg bg-secondary/40 border border-border text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary/50 transition-all resize-y text-sm leading-relaxed"
+              />
+              <p className="text-xs text-muted-foreground mt-2">As anotações são salvas automaticamente neste navegador.</p>
+            </CardContent>
+          </Card>
         </motion.div>
       </main>
 
