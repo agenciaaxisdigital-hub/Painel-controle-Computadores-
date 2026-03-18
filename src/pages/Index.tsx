@@ -85,6 +85,8 @@ const Index = () => {
 
   const autoLoginAndOpen = async (machine: Machine, target: "_blank" | "iframe") => {
     const baseUrl = getMachineUrl(machine);
+
+    // Tenta login via API primeiro
     try {
       const res = await fetch(`${baseUrl}/api/login`, {
         method: "POST",
@@ -108,20 +110,9 @@ const Index = () => {
       // fallback
     }
 
+    // Fallback: abre direto sem auth (o File Browser mostrará tela de login)
     if (target === "_blank") {
-      const form = document.createElement("form");
-      form.method = "POST";
-      form.action = `${baseUrl}/api/login`;
-      form.target = "_blank";
-      const uField = document.createElement("input");
-      uField.type = "hidden"; uField.name = "username"; uField.value = FB_USER;
-      const pField = document.createElement("input");
-      pField.type = "hidden"; pField.name = "password"; pField.value = FB_PASS;
-      form.appendChild(uField);
-      form.appendChild(pField);
-      document.body.appendChild(form);
-      form.submit();
-      document.body.removeChild(form);
+      window.open(baseUrl, "_blank", "noopener,noreferrer");
     } else {
       setAuthToken(null);
       setActiveMachine(machine);
