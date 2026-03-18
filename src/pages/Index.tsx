@@ -86,13 +86,23 @@ const Index = () => {
   const autoLoginAndOpen = async (machine: Machine, target: "_blank" | "iframe") => {
     const baseUrl = getMachineUrl(machine);
 
-    // Tenta login via API primeiro
+    // Em HTTPS público, abre direto sem tentar API (evita delay de timeout)
+    if (isPublicHttps) {
+      window.open(baseUrl, "_blank", "noopener,noreferrer");
+      return;
+    }
+
+    // Em rede local, tenta login via API primeiro
     try {
+      const controller = new AbortController();
+      const timeout = setTimeout(() => controller.abort(), 3000);
       const res = await fetch(`${baseUrl}/api/login`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ username: FB_USER, password: FB_PASS }),
+        signal: controller.signal,
       });
+      clearTimeout(timeout);
       if (res.ok) {
         const token = await res.text();
         const authedUrl = `${baseUrl}/?auth=${encodeURIComponent(token)}`;
@@ -110,7 +120,6 @@ const Index = () => {
       // fallback
     }
 
-    // Fallback: abre direto sem auth (o File Browser mostrará tela de login)
     if (target === "_blank") {
       window.open(baseUrl, "_blank", "noopener,noreferrer");
     } else {
