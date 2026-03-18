@@ -1,22 +1,27 @@
 import { useState, useEffect } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Monitor, FolderOpen, X, Maximize2, Minimize2, RefreshCw, Shield } from "lucide-react";
+import { Monitor, FolderOpen, X, Maximize2, Minimize2, RefreshCw, Shield, Copy, ExternalLink } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
+import { useToast } from "@/hooks/use-toast";
 
 interface Machine {
   name: string;
   ip: string;
+  anydeskId: string;
 }
 
+const ANYDESK_PASSWORD = "Guga26102004";
+
 const machines: Machine[] = [
-  { name: "PC01", ip: "10.168.249.15" },
-  { name: "PC02 - Maria", ip: "10.168.249.80" },
-  { name: "PC03", ip: "10.168.249.101" },
-  { name: "PC04 - Recepção", ip: "10.168.249.175" },
+  { name: "PC01", ip: "10.168.249.15", anydeskId: "1653282695" },
+  { name: "PC02 - Maria", ip: "10.168.249.80", anydeskId: "1486794095" },
+  { name: "PC03", ip: "10.168.249.101", anydeskId: "1509173425" },
+  { name: "PC04 - Recepção", ip: "10.168.249.175", anydeskId: "1764644562" },
 ];
 
 const Index = () => {
+  const { toast } = useToast();
   const [now, setNow] = useState(new Date());
   const [statuses, setStatuses] = useState<Record<string, "online" | "offline" | "checking">>(() => {
     const initial: Record<string, "online" | "offline" | "checking"> = {};
@@ -28,6 +33,7 @@ const Index = () => {
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [iframeKey, setIframeKey] = useState(0);
   const [authToken, setAuthToken] = useState<string | null>(null);
+  const [anydeskMachine, setAnydeskMachine] = useState<Machine | null>(null);
 
   const isPublicHttps =
     typeof window !== "undefined" &&
@@ -80,7 +86,6 @@ const Index = () => {
   const autoLoginAndOpen = async (machine: Machine, target: "_blank" | "iframe") => {
     const baseUrl = getMachineUrl(machine);
     try {
-      // Tenta obter token de autenticação via API do File Browser
       const res = await fetch(`${baseUrl}/api/login`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -100,10 +105,9 @@ const Index = () => {
         return;
       }
     } catch {
-      // Se falhar (CORS, rede, etc), abre normalmente
+      // fallback
     }
 
-    // Fallback: abre com auto-submit de formulário embutido
     if (target === "_blank") {
       const form = document.createElement("form");
       form.method = "POST";
@@ -132,6 +136,11 @@ const Index = () => {
       return;
     }
     autoLoginAndOpen(machine, "iframe");
+  };
+
+  const copyToClipboard = (text: string, label: string) => {
+    navigator.clipboard.writeText(text);
+    toast({ title: `${label} copiado!`, duration: 2000 });
   };
 
   const formatDate = (d: Date) =>
@@ -245,10 +254,17 @@ const Index = () => {
                         </div>
                       </div>
 
-                      <div className="mt-2">
+                      <div className="mt-2 flex flex-col gap-2">
                         <Button className="w-full gap-2 font-medium" style={{ background: "linear-gradient(135deg, hsl(340 82% 55%), hsl(340 72% 45%))" }} onClick={() => openPanel(m)}>
                           <FolderOpen size={16} />
                           Ver Arquivos
+                        </Button>
+                        <Button
+                          variant="outline"
+                          className="w-full gap-2 font-medium border-primary/30 hover:bg-primary/10 hover:border-primary/50"
+                          onClick={() => setAnydeskMachine(m)}
+                        >
+                          🖥️ Acessar Remotamente
                         </Button>
                       </div>
                     </CardContent>
@@ -267,6 +283,111 @@ const Index = () => {
         </div>
       </motion.footer>
 
+      {/* Modal AnyDesk */}
+      <AnimatePresence>
+        {anydeskMachine && (
+          <>
+            <motion.div
+              className="fixed inset-0 z-[60]"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setAnydeskMachine(null)}
+            >
+              <div className="absolute inset-0 bg-black/80 backdrop-blur-md" />
+            </motion.div>
+
+            <motion.div
+              className="fixed z-[70] top-1/2 left-1/2 w-[90vw] max-w-md rounded-2xl border border-border bg-card overflow-hidden"
+              initial={{ opacity: 0, scale: 0.9, x: "-50%", y: "-50%" }}
+              animate={{ opacity: 1, scale: 1, x: "-50%", y: "-50%" }}
+              exit={{ opacity: 0, scale: 0.9, x: "-50%", y: "-50%" }}
+              transition={{ type: "spring", stiffness: 300, damping: 25 }}
+            >
+              <div
+                className="absolute top-0 left-0 right-0 h-0.5"
+                style={{ background: "linear-gradient(90deg, transparent, hsl(340 82% 60%), transparent)" }}
+              />
+
+              {/* Header */}
+              <div className="flex items-center justify-between px-6 py-4 border-b border-border bg-secondary/30">
+                <div className="flex items-center gap-3">
+                  <div className="p-2 rounded-lg bg-primary/15">
+                    <Monitor className="text-primary" size={20} />
+                  </div>
+                  <div>
+                    <h3 className="font-semibold">{anydeskMachine.name}</h3>
+                    <p className="text-xs text-muted-foreground">Acesso Remoto via AnyDesk</p>
+                  </div>
+                </div>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-8 w-8 hover:bg-destructive/20 hover:text-destructive"
+                  onClick={() => setAnydeskMachine(null)}
+                >
+                  <X size={16} />
+                </Button>
+              </div>
+
+              {/* Body */}
+              <div className="px-6 py-6 space-y-5">
+                {/* AnyDesk ID */}
+                <div className="space-y-2">
+                  <label className="text-xs font-medium text-muted-foreground uppercase tracking-wider">ID AnyDesk</label>
+                  <div className="flex items-center gap-3">
+                    <div className="flex-1 bg-secondary/50 border border-border rounded-xl px-4 py-3">
+                      <span className="text-2xl font-mono font-bold text-primary tracking-widest">
+                        {anydeskMachine.anydeskId}
+                      </span>
+                    </div>
+                    <Button
+                      variant="outline"
+                      size="icon"
+                      className="h-12 w-12 shrink-0 border-primary/30 hover:bg-primary/10"
+                      onClick={() => copyToClipboard(anydeskMachine.anydeskId, "ID")}
+                      title="Copiar ID"
+                    >
+                      <Copy size={18} />
+                    </Button>
+                  </div>
+                </div>
+
+                {/* Senha */}
+                <div className="space-y-2">
+                  <label className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Senha de Acesso</label>
+                  <div className="flex items-center gap-3">
+                    <div className="flex-1 bg-secondary/50 border border-border rounded-xl px-4 py-3">
+                      <span className="text-lg font-mono font-semibold">{ANYDESK_PASSWORD}</span>
+                    </div>
+                    <Button
+                      variant="outline"
+                      size="icon"
+                      className="h-12 w-12 shrink-0 border-primary/30 hover:bg-primary/10"
+                      onClick={() => copyToClipboard(ANYDESK_PASSWORD, "Senha")}
+                      title="Copiar Senha"
+                    >
+                      <Copy size={18} />
+                    </Button>
+                  </div>
+                </div>
+
+                {/* Botão Abrir AnyDesk */}
+                <Button
+                  className="w-full gap-2 font-semibold text-base py-6"
+                  style={{ background: "linear-gradient(135deg, hsl(340 82% 55%), hsl(340 72% 45%))" }}
+                  onClick={() => window.open(`anydesk:${anydeskMachine.anydeskId}`, "_self")}
+                >
+                  <ExternalLink size={18} />
+                  Abrir AnyDesk
+                </Button>
+              </div>
+            </motion.div>
+          </>
+        )}
+      </AnimatePresence>
+
+      {/* Painel File Browser */}
       <AnimatePresence mode="wait">
         {activeMachine && (
           <>
