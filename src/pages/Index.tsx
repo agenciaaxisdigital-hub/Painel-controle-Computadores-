@@ -28,12 +28,6 @@ const Index = () => {
   const [activeMachine, setActiveMachine] = useState<Machine | null>(null);
   const [isFullscreen, setIsFullscreen] = useState(false);
 
-  const isPublicHttps =
-    typeof window !== "undefined" &&
-    window.location.protocol === "https:" &&
-    !["localhost", "127.0.0.1"].includes(window.location.hostname);
-
-  const canEmbedInPanel = !isPublicHttps;
   const getMachineUrl = (machine: Machine) => `http://${machine.ip}:8080`;
 
   useEffect(() => {
