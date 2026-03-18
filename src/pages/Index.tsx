@@ -20,17 +20,11 @@ const machines: Machine[] = [
   { name: "PC04 - Recepção", ip: "10.168.249.175", anydeskId: "1764644562" },
 ];
 
-const LOGIN_USER = "admin";
-const LOGIN_PASS = "MinhaSenh@123";
-
 const Index = () => {
   const { toast } = useToast();
-  const [isAuthenticated, setIsAuthenticated] = useState(() => {
-    return sessionStorage.getItem("panel_auth") === "true";
+  const [notes, setNotes] = useState(() => {
+    return localStorage.getItem("panel_notes") || "";
   });
-  const [loginUser, setLoginUser] = useState("");
-  const [loginPass, setLoginPass] = useState("");
-  const [loginError, setLoginError] = useState("");
   const [now, setNow] = useState(new Date());
   const [statuses, setStatuses] = useState<Record<string, "online" | "offline" | "checking">>(() => {
     const initial: Record<string, "online" | "offline" | "checking"> = {};
