@@ -42,14 +42,6 @@ const Index = () => {
   }, []);
 
   const checkStatuses = async () => {
-    if (!canEmbedInPanel) {
-      const fallback: Record<string, "online" | "offline" | "checking"> = {};
-      machines.forEach((m) => (fallback[m.ip] = "checking"));
-      setStatuses(fallback);
-      setLastCheck(new Date());
-      return;
-    }
-
     const results: Record<string, "online" | "offline" | "checking"> = {};
     await Promise.all(
       machines.map(async (m) => {
