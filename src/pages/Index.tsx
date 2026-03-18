@@ -85,6 +85,8 @@ const Index = () => {
 
   const autoLoginAndOpen = async (machine: Machine, target: "_blank" | "iframe") => {
     const baseUrl = getMachineUrl(machine);
+
+    // Tenta login via API primeiro
     try {
       const res = await fetch(`${baseUrl}/api/login`, {
         method: "POST",
@@ -108,20 +110,9 @@ const Index = () => {
       // fallback
     }
 
+    // Fallback: abre direto sem auth (o File Browser mostrará tela de login)
     if (target === "_blank") {
-      const form = document.createElement("form");
-      form.method = "POST";
-      form.action = `${baseUrl}/api/login`;
-      form.target = "_blank";
-      const uField = document.createElement("input");
-      uField.type = "hidden"; uField.name = "username"; uField.value = FB_USER;
-      const pField = document.createElement("input");
-      pField.type = "hidden"; pField.name = "password"; pField.value = FB_PASS;
-      form.appendChild(uField);
-      form.appendChild(pField);
-      document.body.appendChild(form);
-      form.submit();
-      document.body.removeChild(form);
+      window.open(baseUrl, "_blank", "noopener,noreferrer");
     } else {
       setAuthToken(null);
       setActiveMachine(machine);
@@ -278,7 +269,7 @@ const Index = () => {
         </div>
       </motion.footer>
 
-      {/* Modal AnyDesk */}
+      {/* Modal Acesso Remoto */}
       <AnimatePresence>
         {anydeskMachine && (
           <>
@@ -326,16 +317,65 @@ const Index = () => {
               </div>
 
               {/* Body */}
-              <div className="px-6 py-6 space-y-5">
-                {/* Botão Conectar */}
+              <div className="px-6 py-6 space-y-4">
                 <Button
                   className="w-full gap-2 font-semibold text-base py-6"
                   style={{ background: "linear-gradient(135deg, hsl(340 82% 55%), hsl(340 72% 45%))" }}
-                  onClick={() => window.open(`anydesk:${anydeskMachine.anydeskId}`, "_self")}
+                  onClick={() => {
+                    window.open(`anydesk:${anydeskMachine.anydeskId}`, "_self");
+                  }}
                 >
                   <ExternalLink size={18} />
                   Conectar
                 </Button>
+
+                <div className="rounded-lg bg-secondary/40 border border-border p-4 space-y-2">
+                  <p className="text-xs text-muted-foreground leading-relaxed">
+                    📱 <strong>No celular ou sem o app instalado?</strong>
+                  </p>
+                  <p className="text-xs text-muted-foreground leading-relaxed">
+                    Baixe o aplicativo gratuito, abra e digite o código abaixo para conectar:
+                  </p>
+                  <div className="flex items-center gap-2 mt-2">
+                    <code className="flex-1 text-sm font-mono bg-background/60 px-3 py-2 rounded-md text-foreground text-center tracking-widest">
+                      {anydeskMachine.anydeskId}
+                    </code>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="shrink-0"
+                      onClick={() => copyToClipboard(anydeskMachine.anydeskId, "Código")}
+                    >
+                      <Copy size={14} />
+                    </Button>
+                  </div>
+                  <div className="flex gap-2 mt-3">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="flex-1 text-xs"
+                      onClick={() => window.open("https://anydesk.com/pt/downloads", "_blank")}
+                    >
+                      💻 PC/Mac
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="flex-1 text-xs"
+                      onClick={() => window.open("https://play.google.com/store/apps/details?id=com.anydesk.anydeskandroid", "_blank")}
+                    >
+                      📱 Android
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="flex-1 text-xs"
+                      onClick={() => window.open("https://apps.apple.com/app/anydesk-remote-desktop/id1176131273", "_blank")}
+                    >
+                      🍎 iPhone
+                    </Button>
+                  </div>
+                </div>
               </div>
             </motion.div>
           </>
