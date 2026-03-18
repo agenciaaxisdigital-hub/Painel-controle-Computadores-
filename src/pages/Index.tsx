@@ -162,10 +162,6 @@ const Index = () => {
     show: { opacity: 1, y: 0, scale: 1, transition: { type: "spring" as const, stiffness: 200, damping: 20 } },
   };
 
-  const handleNotesChange = (value: string) => {
-    setNotes(value);
-    localStorage.setItem("panel_notes", value);
-  };
 
   return (
     <div className="min-h-screen bg-background text-foreground flex flex-col relative overflow-hidden">
