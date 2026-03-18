@@ -191,6 +191,17 @@ const Index = () => {
             <div>
               <h1 className="text-xl sm:text-2xl font-bold tracking-tight">Painel de Controle de Computadores</h1>
               <p className="text-sm text-muted-foreground">Dra. Fernanda Sarelli — Rede Corporativa de Computadores</p>
+              <div className="flex items-center gap-3 mt-1.5">
+                <span className="inline-flex items-center gap-1.5 text-xs text-muted-foreground/80">
+                  <span className="font-medium text-muted-foreground">Usuário:</span>
+                  <code className="bg-secondary/70 px-1.5 py-0.5 rounded font-mono text-[11px] text-foreground/80">admin</code>
+                </span>
+                <span className="text-muted-foreground/30">|</span>
+                <span className="inline-flex items-center gap-1.5 text-xs text-muted-foreground/80">
+                  <span className="font-medium text-muted-foreground">Senha:</span>
+                  <code className="bg-secondary/70 px-1.5 py-0.5 rounded font-mono text-[11px] text-foreground/80">MinhaSenh@123</code>
+                </span>
+              </div>
             </div>
           </div>
           <div className="flex flex-col items-end gap-0.5">
@@ -262,13 +273,6 @@ const Index = () => {
           })}
         </motion.div>
 
-        {/* Lembrete de credenciais */}
-        <div className="mt-8 flex justify-center">
-          <div className="text-sm text-muted-foreground space-y-1">
-            <p>• <strong>Usuário:</strong> <code className="bg-secondary/60 px-2 py-0.5 rounded text-foreground font-mono text-xs">admin</code></p>
-            <p>• <strong>Senha:</strong> <code className="bg-secondary/60 px-2 py-0.5 rounded text-foreground font-mono text-xs">MinhaSenh@123</code></p>
-          </div>
-        </div>
       </main>
 
       <motion.footer className="border-t border-border px-6 py-4 z-10" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.5 }}>
