@@ -27,6 +27,7 @@ const Index = () => {
   const [activeMachine, setActiveMachine] = useState<Machine | null>(null);
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [iframeKey, setIframeKey] = useState(0);
+  const [authToken, setAuthToken] = useState<string | null>(null);
 
   const isPublicHttps =
     typeof window !== "undefined" &&
