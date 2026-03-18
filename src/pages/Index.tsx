@@ -119,6 +119,7 @@ const Index = () => {
       form.submit();
       document.body.removeChild(form);
     } else {
+      setAuthToken(null);
       setActiveMachine(machine);
       setIsFullscreen(false);
       setIframeKey((k) => k + 1);
