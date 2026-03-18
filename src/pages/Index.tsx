@@ -197,8 +197,8 @@ const Index = () => {
               <Shield className="text-primary-foreground" size={26} />
             </motion.div>
             <div>
-              <h1 className="text-xl sm:text-2xl font-bold tracking-tight">Painel de Controle</h1>
-              <p className="text-sm text-muted-foreground">Dra. Fernanda Sarelli — Rede Corporativa</p>
+              <h1 className="text-xl sm:text-2xl font-bold tracking-tight">Painel de Controle de Computadores</h1>
+              <p className="text-sm text-muted-foreground">Dra. Fernanda Sarelli — Rede Corporativa de Computadores</p>
             </div>
           </div>
           <div className="flex flex-col items-end gap-0.5">
