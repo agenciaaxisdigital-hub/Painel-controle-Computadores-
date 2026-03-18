@@ -1,8 +1,9 @@
 import { useState, useEffect } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Monitor, FolderOpen, X, Maximize2, Minimize2, RefreshCw, Shield } from "lucide-react";
+import { Monitor, FolderOpen, Shield } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
+import FileExplorer from "@/components/FileExplorer";
 
 interface Machine {
   name: string;
