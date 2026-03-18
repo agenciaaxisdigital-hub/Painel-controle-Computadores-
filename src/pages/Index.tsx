@@ -171,7 +171,6 @@ const Index = () => {
     show: { opacity: 1, y: 0, scale: 1, transition: { type: "spring" as const, stiffness: 200, damping: 20 } },
   };
 
-  return (
   const handleLogin = (e: React.FormEvent) => {
     e.preventDefault();
     if (loginUser === LOGIN_USER && loginPass === LOGIN_PASS) {
