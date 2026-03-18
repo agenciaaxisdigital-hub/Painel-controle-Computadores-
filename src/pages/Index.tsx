@@ -22,9 +22,6 @@ const machines: Machine[] = [
 
 const Index = () => {
   const { toast } = useToast();
-  const [notes, setNotes] = useState(() => {
-    return localStorage.getItem("panel_notes") || "";
-  });
   const [now, setNow] = useState(new Date());
   const [statuses, setStatuses] = useState<Record<string, "online" | "offline" | "checking">>(() => {
     const initial: Record<string, "online" | "offline" | "checking"> = {};
@@ -165,10 +162,6 @@ const Index = () => {
     show: { opacity: 1, y: 0, scale: 1, transition: { type: "spring" as const, stiffness: 200, damping: 20 } },
   };
 
-  const handleNotesChange = (value: string) => {
-    setNotes(value);
-    localStorage.setItem("panel_notes", value);
-  };
 
   return (
     <div className="min-h-screen bg-background text-foreground flex flex-col relative overflow-hidden">
@@ -269,33 +262,13 @@ const Index = () => {
           })}
         </motion.div>
 
-        {/* Bloco de Anotações */}
-        <motion.div
-          className="mt-8"
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.4, duration: 0.5 }}
-        >
-          <Card className="bg-card border-border overflow-hidden">
-            <div
-              className="h-0.5"
-              style={{ background: "linear-gradient(90deg, transparent, hsl(340 82% 60%), transparent)" }}
-            />
-            <CardContent className="p-6">
-              <div className="flex items-center gap-2 mb-3">
-                <span className="text-lg">📝</span>
-                <h2 className="font-semibold text-base">Anotações</h2>
-              </div>
-              <textarea
-                value={notes}
-                onChange={(e) => handleNotesChange(e.target.value)}
-                placeholder="Escreva suas anotações aqui..."
-                className="w-full min-h-[120px] px-4 py-3 rounded-lg bg-secondary/40 border border-border text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary/50 transition-all resize-y text-sm leading-relaxed"
-              />
-              <p className="text-xs text-muted-foreground mt-2">As anotações são salvas automaticamente neste navegador.</p>
-            </CardContent>
-          </Card>
-        </motion.div>
+        {/* Lembrete de credenciais */}
+        <div className="mt-8 flex justify-center">
+          <div className="text-sm text-muted-foreground space-y-1">
+            <p>• <strong>Usuário:</strong> <code className="bg-secondary/60 px-2 py-0.5 rounded text-foreground font-mono text-xs">admin</code></p>
+            <p>• <strong>Senha:</strong> <code className="bg-secondary/60 px-2 py-0.5 rounded text-foreground font-mono text-xs">MinhaSenh@123</code></p>
+          </div>
+        </div>
       </main>
 
       <motion.footer className="border-t border-border px-6 py-4 z-10" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.5 }}>
