@@ -216,13 +216,6 @@ const Index = () => {
         </div>
       </motion.header>
 
-      {isPublicHttps && (
-        <div className="max-w-5xl mx-auto px-6 pt-4 w-full">
-          <div className="rounded-lg border border-border bg-secondary/40 px-4 py-3 text-sm text-muted-foreground">
-            Domínio público (HTTPS) bloqueia acesso interno por iframe. O botão <span className="text-primary font-medium">Ver Arquivos</span> abrirá em nova aba para funcionar sem erro.
-          </div>
-        </div>
-      )}
 
       <main className="max-w-5xl mx-auto px-6 py-10 flex-1 w-full">
         <motion.div className="grid grid-cols-1 sm:grid-cols-2 gap-6" variants={containerVariants} initial="hidden" animate="show">
