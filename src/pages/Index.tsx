@@ -312,7 +312,7 @@ const Index = () => {
                   </div>
                   <div>
                     <h3 className="font-semibold">{anydeskMachine.name}</h3>
-                    <p className="text-xs text-muted-foreground">Acesso Remoto via AnyDesk</p>
+                    <p className="text-xs text-muted-foreground">Acesso Remoto</p>
                   </div>
                 </div>
                 <Button
@@ -327,54 +327,14 @@ const Index = () => {
 
               {/* Body */}
               <div className="px-6 py-6 space-y-5">
-                {/* AnyDesk ID */}
-                <div className="space-y-2">
-                  <label className="text-xs font-medium text-muted-foreground uppercase tracking-wider">ID AnyDesk</label>
-                  <div className="flex items-center gap-3">
-                    <div className="flex-1 bg-secondary/50 border border-border rounded-xl px-4 py-3">
-                      <span className="text-2xl font-mono font-bold text-primary tracking-widest">
-                        {anydeskMachine.anydeskId}
-                      </span>
-                    </div>
-                    <Button
-                      variant="outline"
-                      size="icon"
-                      className="h-12 w-12 shrink-0 border-primary/30 hover:bg-primary/10"
-                      onClick={() => copyToClipboard(anydeskMachine.anydeskId, "ID")}
-                      title="Copiar ID"
-                    >
-                      <Copy size={18} />
-                    </Button>
-                  </div>
-                </div>
-
-                {/* Senha */}
-                <div className="space-y-2">
-                  <label className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Senha de Acesso</label>
-                  <div className="flex items-center gap-3">
-                    <div className="flex-1 bg-secondary/50 border border-border rounded-xl px-4 py-3">
-                      <span className="text-lg font-mono font-semibold">{ANYDESK_PASSWORD}</span>
-                    </div>
-                    <Button
-                      variant="outline"
-                      size="icon"
-                      className="h-12 w-12 shrink-0 border-primary/30 hover:bg-primary/10"
-                      onClick={() => copyToClipboard(ANYDESK_PASSWORD, "Senha")}
-                      title="Copiar Senha"
-                    >
-                      <Copy size={18} />
-                    </Button>
-                  </div>
-                </div>
-
-                {/* Botão Abrir AnyDesk */}
+                {/* Botão Conectar */}
                 <Button
                   className="w-full gap-2 font-semibold text-base py-6"
                   style={{ background: "linear-gradient(135deg, hsl(340 82% 55%), hsl(340 72% 45%))" }}
                   onClick={() => window.open(`anydesk:${anydeskMachine.anydeskId}`, "_self")}
                 >
                   <ExternalLink size={18} />
-                  Abrir AnyDesk
+                  Conectar
                 </Button>
               </div>
             </motion.div>
