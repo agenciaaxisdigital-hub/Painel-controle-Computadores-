@@ -262,13 +262,6 @@ const Index = () => {
           })}
         </motion.div>
 
-        {/* Lembrete de credenciais */}
-        <div className="mt-8 flex justify-center">
-          <div className="text-sm text-muted-foreground space-y-1">
-            <p>• <strong>Usuário:</strong> <code className="bg-secondary/60 px-2 py-0.5 rounded text-foreground font-mono text-xs">admin</code></p>
-            <p>• <strong>Senha:</strong> <code className="bg-secondary/60 px-2 py-0.5 rounded text-foreground font-mono text-xs">MinhaSenh@123</code></p>
-          </div>
-        </div>
       </main>
 
       <motion.footer className="border-t border-border px-6 py-4 z-10" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.5 }}>
