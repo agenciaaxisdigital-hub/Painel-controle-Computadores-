@@ -34,6 +34,7 @@ const Index = () => {
   const [iframeKey, setIframeKey] = useState(0);
   const [authToken, setAuthToken] = useState<string | null>(null);
   const [anydeskMachine, setAnydeskMachine] = useState<Machine | null>(null);
+  const [connectingMachine, setConnectingMachine] = useState<string | null>(null);
 
   const isPublicHttps =
     typeof window !== "undefined" &&
@@ -84,6 +85,17 @@ const Index = () => {
   }, []);
 
   const autoLoginAndOpen = async (machine: Machine, target: "_blank" | "iframe") => {
+    // Fail fast se sabemos que está offline, evitando tempo de espera
+    if (statuses[machine.ip] === "offline") {
+      toast({
+        title: "Máquina Offline",
+        description: `Não é possível conectar a ${machine.name}. Verifique se ela está ligada e na rede ZeroTier.`,
+        variant: "destructive",
+        duration: 4000,
+      });
+      return;
+    }
+
     const baseUrl = getMachineUrl(machine);
 
     // Em HTTPS público, abre direto sem tentar API (evita delay de timeout)
@@ -91,6 +103,8 @@ const Index = () => {
       window.open(baseUrl, "_blank", "noopener,noreferrer");
       return;
     }
+
+    setConnectingMachine(machine.ip);
 
     // Em rede local, tenta login via API primeiro
     try {
@@ -103,6 +117,9 @@ const Index = () => {
         signal: controller.signal,
       });
       clearTimeout(timeout);
+      
+      setConnectingMachine(null);
+
       if (res.ok) {
         const token = await res.text();
         const authedUrl = `${baseUrl}/?auth=${encodeURIComponent(token)}`;
@@ -117,7 +134,15 @@ const Index = () => {
         return;
       }
     } catch {
-      // fallback
+      setConnectingMachine(null);
+      toast({
+        title: "Erro de Conexão",
+        description: `Falha ao conectar na interface web da ${machine.name}. Ela pode estar offline.`,
+        variant: "destructive",
+        duration: 4000,
+      });
+      setStatuses(prev => ({ ...prev, [machine.ip]: "offline" }));
+      return;
     }
 
     if (target === "_blank") {
@@ -265,9 +290,18 @@ const Index = () => {
                       </div>
 
                       <div className="mt-2 flex flex-col gap-2">
-                        <Button className="w-full gap-2 font-medium" style={{ background: "linear-gradient(135deg, hsl(340 82% 55%), hsl(340 72% 45%))" }} onClick={() => openPanel(m)}>
-                          <FolderOpen size={16} />
-                          Ver Arquivos
+                        <Button 
+                          className="w-full gap-2 font-medium" 
+                          style={{ background: "linear-gradient(135deg, hsl(340 82% 55%), hsl(340 72% 45%))" }} 
+                          onClick={() => openPanel(m)}
+                          disabled={connectingMachine === m.ip}
+                        >
+                          {connectingMachine === m.ip ? (
+                            <RefreshCw className="animate-spin" size={16} />
+                          ) : (
+                            <FolderOpen size={16} />
+                          )}
+                          {connectingMachine === m.ip ? "Conectando..." : "Ver Arquivos"}
                         </Button>
                         <Button
                           variant="outline"
