@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Monitor, FolderOpen, X, Maximize2, Minimize2, RefreshCw, Shield, Copy, ExternalLink } from "lucide-react";
@@ -11,7 +11,7 @@ interface Machine {
   anydeskId: string;
 }
 
-const ANYDESK_PASSWORD = "Guga26102004";
+
 
 const machines: Machine[] = [
   { name: "PC01", ip: "10.168.249.15", anydeskId: "1653282695" },
@@ -50,7 +50,7 @@ const Index = () => {
     return () => clearInterval(t);
   }, []);
 
-  const checkStatuses = async () => {
+  const checkStatuses = useCallback(async () => {
     if (!canEmbedInPanel) {
       const fallback: Record<string, "online" | "offline" | "checking"> = {};
       machines.forEach((m) => (fallback[m.ip] = "checking"));
@@ -75,7 +75,7 @@ const Index = () => {
     );
     setStatuses(results);
     setLastCheck(new Date());
-  };
+  }, [canEmbedInPanel]);
 
   useEffect(() => {
     checkStatuses();
@@ -138,10 +138,13 @@ const Index = () => {
     autoLoginAndOpen(machine, "iframe");
   };
 
-  const copyToClipboard = (text: string, label: string) => {
-    navigator.clipboard.writeText(text);
-    toast({ title: `${label} copiado!`, duration: 2000 });
-  };
+  const copyToClipboard = useCallback((text: string, label: string) => {
+    navigator.clipboard.writeText(text).then(() => {
+      toast({ title: `${label} copiado!`, duration: 2000 });
+    }).catch(() => {
+      toast({ title: `Erro ao copiar ${label}`, variant: "destructive", duration: 2000 });
+    });
+  }, [toast]);
 
   const formatDate = (d: Date) =>
     d.toLocaleDateString("pt-BR", { weekday: "long", year: "numeric", month: "long", day: "numeric" });
