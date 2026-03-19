@@ -356,8 +356,8 @@ const Index = () => {
                     variant="outline"
                     className="w-full gap-2 font-semibold text-base py-6 border-primary/30 hover:bg-primary/10"
                     onClick={() => {
-                      copyToClipboard(anydeskMachine.anydeskId, "Código");
-                      window.open(`https://go.anydesk.com/`, "_blank");
+                      copyToClipboard(anydeskMachine.anydeskId, "Código AnyDesk");
+                      window.open(`https://start.anydesk.com/`, "_blank");
                     }}
                   >
                     <ExternalLink size={18} />
