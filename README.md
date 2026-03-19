@@ -1,3 +1,3 @@
-# Welcome to your Lovable project
+# Painel de Controle - Computadores
 
-TODO: Document your project here
+Este é o repositório principal do Painel de Controle de Computadores.

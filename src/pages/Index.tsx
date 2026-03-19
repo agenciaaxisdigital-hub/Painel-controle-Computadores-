@@ -340,16 +340,30 @@ const Index = () => {
 
               {/* Body */}
               <div className="px-6 py-6 space-y-4">
-                <Button
-                  className="w-full gap-2 font-semibold text-base py-6"
-                  style={{ background: "linear-gradient(135deg, hsl(340 82% 55%), hsl(340 72% 45%))" }}
-                  onClick={() => {
-                    window.open(`anydesk:${anydeskMachine.anydeskId}`, "_self");
-                  }}
-                >
-                  <ExternalLink size={18} />
-                  Conectar
-                </Button>
+                <div className="flex flex-col gap-3">
+                  <Button
+                    className="w-full gap-2 font-semibold text-base py-6"
+                    style={{ background: "linear-gradient(135deg, hsl(340 82% 55%), hsl(340 72% 45%))" }}
+                    onClick={() => {
+                      window.open(`anydesk:${anydeskMachine.anydeskId}`, "_self");
+                    }}
+                  >
+                    <ExternalLink size={18} />
+                    Conectar (Via App)
+                  </Button>
+
+                  <Button
+                    variant="outline"
+                    className="w-full gap-2 font-semibold text-base py-6 border-primary/30 hover:bg-primary/10"
+                    onClick={() => {
+                      copyToClipboard(anydeskMachine.anydeskId, "Código");
+                      window.open(`https://go.anydesk.com/`, "_blank");
+                    }}
+                  >
+                    <ExternalLink size={18} />
+                    Acessar via Web
+                  </Button>
+                </div>
 
                 <div className="rounded-lg bg-secondary/40 border border-border p-4 space-y-2">
                   <p className="text-xs text-muted-foreground leading-relaxed">
