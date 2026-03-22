@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Monitor, FolderOpen, X, Maximize2, Minimize2, RefreshCw, Shield, Copy, ExternalLink } from "lucide-react";
+import { Monitor, FolderOpen, X, Maximize2, Minimize2, RefreshCw, Shield, Copy, ExternalLink, Home, Settings, UserSquare2, Server } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useToast } from "@/hooks/use-toast";
 
@@ -10,8 +10,6 @@ interface Machine {
   ip: string;
   anydeskId: string;
 }
-
-
 
 const machines: Machine[] = [
   { name: "PC01", ip: "10.168.249.15", anydeskId: "1653282695" },
@@ -35,6 +33,7 @@ const Index = () => {
   const [authToken, setAuthToken] = useState<string | null>(null);
   const [anydeskMachine, setAnydeskMachine] = useState<Machine | null>(null);
   const [connectingMachine, setConnectingMachine] = useState<string | null>(null);
+  const [activeTab, setActiveTab] = useState("home");
 
   const isPublicHttps =
     typeof window !== "undefined" &&
@@ -85,20 +84,17 @@ const Index = () => {
   }, []);
 
   const autoLoginAndOpen = async (machine: Machine, target: "_blank" | "iframe") => {
-    // Fail fast se sabemos que está offline, evitando tempo de espera
     if (statuses[machine.ip] === "offline") {
       toast({
         title: "Máquina Offline",
-        description: `Não é possível conectar a ${machine.name}. Verifique se ela está ligada e na rede ZeroTier.`,
+        description: `Não é possível conectar a ${machine.name}. Verifique se ela está ligada.`,
         variant: "destructive",
-        duration: 4000,
       });
       return;
     }
 
     const baseUrl = getMachineUrl(machine);
 
-    // Em HTTPS público, abre direto sem tentar API (evita delay de timeout)
     if (isPublicHttps) {
       window.open(baseUrl, "_blank", "noopener,noreferrer");
       return;
@@ -106,7 +102,6 @@ const Index = () => {
 
     setConnectingMachine(machine.ip);
 
-    // Em rede local, tenta login via API primeiro
     try {
       const controller = new AbortController();
       const timeout = setTimeout(() => controller.abort(), 3000);
@@ -137,9 +132,8 @@ const Index = () => {
       setConnectingMachine(null);
       toast({
         title: "Erro de Conexão",
-        description: `Falha ao conectar na interface web da ${machine.name}. Ela pode estar offline.`,
+        description: `Falha ao conectar na interface web da ${machine.name}.`,
         variant: "destructive",
-        duration: 4000,
       });
       setStatuses(prev => ({ ...prev, [machine.ip]: "offline" }));
       return;
@@ -165,28 +159,28 @@ const Index = () => {
 
   const copyToClipboard = useCallback((text: string, label: string) => {
     navigator.clipboard.writeText(text).then(() => {
-      toast({ title: `${label} copiado!`, duration: 2000 });
+      toast({ title: `${label} copiado!` });
     }).catch(() => {
-      toast({ title: `Erro ao copiar ${label}`, variant: "destructive", duration: 2000 });
+      toast({ title: `Erro ao copiar ${label}`, variant: "destructive" });
     });
   }, [toast]);
 
   const formatDate = (d: Date) =>
-    d.toLocaleDateString("pt-BR", { weekday: "long", year: "numeric", month: "long", day: "numeric" });
+    d.toLocaleDateString("pt-BR", { year: "numeric", month: "long", day: "numeric" });
 
   const formatTime = (d: Date) =>
-    d.toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit", second: "2-digit" });
+    d.toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" });
 
   const statusDot = (s: "online" | "offline" | "checking") => {
-    if (s === "online") return "bg-[hsl(var(--noc-green))] shadow-[0_0_10px_hsl(var(--noc-green)/0.7)]";
-    if (s === "offline") return "bg-[hsl(var(--noc-red))] shadow-[0_0_10px_hsl(var(--noc-red)/0.7)]";
+    if (s === "online") return "bg-[hsl(var(--noc-green))] shadow-[0_0_8px_hsl(var(--noc-green)/0.7)]";
+    if (s === "offline") return "bg-destructive shadow-[0_0_8px_hsl(var(--destructive)/0.7)]";
     return "bg-muted-foreground animate-pulse";
   };
 
   const statusInfo = (s: "online" | "offline" | "checking") => {
     if (s === "online") return { text: "Online", cls: "text-[hsl(var(--noc-green))]" };
-    if (s === "offline") return { text: "Offline", cls: "text-[hsl(var(--noc-red))]" };
-    return { text: "Verificando...", cls: "text-muted-foreground" };
+    if (s === "offline") return { text: "Offline", cls: "text-destructive" };
+    return { text: "Lendo...", cls: "text-muted-foreground" };
   };
 
   const containerVariants = {
@@ -195,341 +189,258 @@ const Index = () => {
   };
 
   const cardVariants = {
-    hidden: { opacity: 0, y: 30, scale: 0.95 },
-    show: { opacity: 1, y: 0, scale: 1, transition: { type: "spring" as const, stiffness: 200, damping: 20 } },
+    hidden: { opacity: 0, y: 15 },
+    show: { opacity: 1, y: 0, transition: { type: "spring" as const, stiffness: 300, damping: 25 } },
   };
 
-
   return (
-    <div className="min-h-screen bg-background text-foreground flex flex-col relative overflow-hidden">
-      <div
-        className="fixed top-0 left-0 w-full h-80 pointer-events-none opacity-20"
-        style={{
-          background: "radial-gradient(ellipse at 50% 0%, hsl(340 82% 60% / 0.4) 0%, transparent 70%)",
-        }}
-      />
-
-      <motion.header
-        className="border-b border-border px-6 py-5 z-10 relative"
-        initial={{ opacity: 0, y: -20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5, ease: "easeOut" }}
-      >
-        <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
-          <div className="flex items-center gap-4">
-            <motion.div
-              className="p-2.5 rounded-xl"
-              style={{ background: "linear-gradient(135deg, hsl(340 82% 55%), hsl(340 82% 45%))" }}
-              animate={{ boxShadow: ["0 0 0px hsl(340 82% 60% / 0)", "0 0 25px hsl(340 82% 60% / 0.4)", "0 0 0px hsl(340 82% 60% / 0)"] }}
-              transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
-            >
-              <Shield className="text-primary-foreground" size={26} />
-            </motion.div>
-            <div>
-              <h1 className="text-xl sm:text-2xl font-bold tracking-tight">Painel de Controle de Computadores</h1>
-              <p className="text-sm text-muted-foreground">Dra. Fernanda Sarelli — Rede Corporativa de Computadores</p>
-              <div className="flex items-center gap-3 mt-1.5">
-                <span className="inline-flex items-center gap-1.5 text-xs text-muted-foreground/80">
-                  <span className="font-medium text-muted-foreground">Usuário:</span>
-                  <code className="bg-secondary/70 px-1.5 py-0.5 rounded font-mono text-[11px] text-foreground/80">admin</code>
-                </span>
-                <span className="text-muted-foreground/30">|</span>
-                <span className="inline-flex items-center gap-1.5 text-xs text-muted-foreground/80">
-                  <span className="font-medium text-muted-foreground">Senha:</span>
-                  <code className="bg-secondary/70 px-1.5 py-0.5 rounded font-mono text-[11px] text-foreground/80">MinhaSenh@123</code>
-                </span>
+    <div className="min-h-[100dvh] bg-background text-foreground flex flex-col relative w-full items-center">
+      
+      {/* Mobile-first constraint container */}
+      <div className="w-full max-w-2xl flex flex-col min-h-[100dvh] relative bg-background mx-auto shadow-2xl">
+        
+        {/* Sticky Header with Gradient Top Bar */}
+        <header className="sticky top-0 z-30 bg-background/90 backdrop-blur-xl border-b border-border shadow-sm">
+          <div className="absolute top-0 left-0 w-full h-[1.5px] bg-gradient-header" />
+          <div className="px-5 py-4 flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-full p-[2px] bg-gradient-primary shrink-0">
+                <img 
+                  src="https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?ixlib=rb-4.0.3&auto=format&fit=crop&w=128&q=80" 
+                  alt="Dra. Fernanda" 
+                  className="w-full h-full object-cover rounded-full border border-black/20"
+                />
+              </div>
+              <div className="flex flex-col">
+                <h1 className="text-xl font-bold tracking-tight leading-tight">Painel Sarelli</h1>
+                <p className="text-[10px] text-muted-foreground uppercase tracking-widest font-medium">Gestão Política</p>
               </div>
             </div>
+            
+            <div className="flex flex-col items-end">
+              <span className="text-sm font-bold text-primary tabular-nums">{formatTime(now)}</span>
+              <span className="text-[10px] text-muted-foreground capitalize">{formatDate(now)}</span>
+            </div>
           </div>
-          <div className="flex flex-col items-end gap-0.5">
-            <motion.div
-              className="text-3xl sm:text-4xl font-mono font-bold text-primary tabular-nums"
-              key={formatTime(now)}
-              initial={{ opacity: 0.7 }}
-              animate={{ opacity: 1 }}
-              transition={{ duration: 0.3 }}
-            >
-              {formatTime(now)}
-            </motion.div>
-            <p className="text-xs text-muted-foreground capitalize">{formatDate(now)}</p>
+        </header>
+
+        {/* Main Content Area */}
+        <main className="flex-1 px-4 py-6 pb-28 space-y-6">
+          
+          <div className="space-y-1">
+             <h2 className="text-sm font-semibold text-primary uppercase tracking-wider">Dispositivos Remotos</h2>
+             <p className="text-[11px] text-muted-foreground uppercase tracking-widest">Monitoramento ZeroTier ativado</p>
+          </div>
+
+          <motion.div className="flex flex-col gap-4" variants={containerVariants} initial="hidden" animate="show">
+            {machines.map((m) => {
+              const s = statuses[m.ip] ?? "checking";
+              const si = statusInfo(s);
+              return (
+                <motion.div key={m.ip} variants={cardVariants} className="bg-card rounded-2xl border border-border shadow-sm p-4 space-y-3 relative overflow-hidden">
+                  
+                  {/* Item Header */}
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 rounded-xl bg-secondary flex items-center justify-center border border-border">
+                        <Monitor className="text-primary" size={20} />
+                      </div>
+                      <div>
+                        <h3 className="font-semibold text-sm">{m.name}</h3>
+                        <p className="text-[10px] text-muted-foreground font-mono mt-0.5">{m.ip}</p>
+                      </div>
+                    </div>
+                    
+                    {!isPublicHttps && (
+                      <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-secondary/50 border border-border">
+                        <span className={`h-2 w-2 rounded-full ${statusDot(s)}`} />
+                        <span className={`text-[10px] font-semibold uppercase tracking-wider ${si.cls}`}>{si.text}</span>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Actions */}
+                  <div className="flex items-center gap-2 pt-1">
+                    <Button 
+                      className="flex-1 h-11 rounded-xl gap-2 text-xs font-semibold shadow-lg shadow-pink-500/20 active:scale-[0.98] transition-transform bg-gradient-primary text-white border-0 hover:opacity-90"
+                      onClick={() => openPanel(m)}
+                      disabled={connectingMachine === m.ip}
+                    >
+                      {connectingMachine === m.ip ? <RefreshCw className="animate-spin" size={16} /> : <FolderOpen size={16} />}
+                      {connectingMachine === m.ip ? "Conectando..." : "Arquivos"}
+                    </Button>
+                    <Button
+                      variant="outline"
+                      className="flex-1 h-11 rounded-xl gap-2 text-xs font-semibold bg-transparent border-primary/20 hover:border-primary/50 text-foreground"
+                      onClick={() => setAnydeskMachine(m)}
+                    >
+                      <ExternalLink size={16} className="text-primary" />
+                      AnyDesk
+                    </Button>
+                  </div>
+                </motion.div>
+              );
+            })}
+          </motion.div>
+
+          {/* Additional text requested */}
+          <div className="pt-6 pb-2 text-center w-full">
+            <p className="text-[11px] text-muted-foreground">Sistema protegido. <span className="opacity-60">mas anda pode para de funconar</span></p>
+          </div>
+        </main>
+
+        {/* Bottom Navigation */}
+        <div className="fixed bottom-0 w-full max-w-2xl bg-card/95 backdrop-blur-xl border-t border-border z-40 pb-[env(safe-area-inset-bottom)]">
+          <div className="flex items-center justify-around h-16 px-2">
+            
+            <button onClick={() => setActiveTab("home")} className={`flex flex-col items-center justify-center w-16 gap-1 ${activeTab === "home" ? "text-primary font-semibold" : "text-muted-foreground"}`}>
+              <Home size={22} className={activeTab === "home" ? "drop-shadow-[0_0_8px_rgba(236,72,153,0.5)]" : ""} />
+              <span className="text-[10px]">Início</span>
+            </button>
+            <button onClick={() => setActiveTab("devices")} className={`flex flex-col items-center justify-center w-16 gap-1 ${activeTab === "devices" ? "text-primary font-semibold" : "text-muted-foreground"}`}>
+              <Server size={22} className={activeTab === "devices" ? "drop-shadow-[0_0_8px_rgba(236,72,153,0.5)]" : ""} />
+              <span className="text-[10px]">Rede</span>
+            </button>
+            <button onClick={() => setActiveTab("profile")} className={`flex flex-col items-center justify-center w-16 gap-1 ${activeTab === "profile" ? "text-primary font-semibold" : "text-muted-foreground"}`}>
+              <UserSquare2 size={22} className={activeTab === "profile" ? "drop-shadow-[0_0_8px_rgba(236,72,153,0.5)]" : ""} />
+              <span className="text-[10px]">Perfil</span>
+            </button>
+            <button onClick={() => setActiveTab("settings")} className={`flex flex-col items-center justify-center w-16 gap-1 ${activeTab === "settings" ? "text-primary font-semibold" : "text-muted-foreground"}`}>
+              <Settings size={22} className={activeTab === "settings" ? "drop-shadow-[0_0_8px_rgba(236,72,153,0.5)]" : ""} />
+              <span className="text-[10px]">Ajustes</span>
+            </button>
+
           </div>
         </div>
-      </motion.header>
 
+        {/* Modal Acesso Remoto (AnyDesk) */}
+        <AnimatePresence>
+          {anydeskMachine && (
+            <>
+              <motion.div
+                className="fixed inset-0 z-[60] bg-black/80 backdrop-blur-md"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                onClick={() => setAnydeskMachine(null)}
+              />
 
-      <main className="max-w-5xl mx-auto px-6 py-10 flex-1 w-full">
-        <motion.div className="grid grid-cols-1 sm:grid-cols-2 gap-6" variants={containerVariants} initial="hidden" animate="show">
-          {machines.map((m) => {
-            const s = statuses[m.ip] ?? "checking";
-            const si = statusInfo(s);
-            return (
-              <motion.div key={m.ip} variants={cardVariants}>
-                <motion.div whileHover={{ scale: 1.03, y: -4 }} transition={{ type: "spring", stiffness: 300, damping: 20 }}>
-                  <Card className="bg-card border-border hover:border-primary/50 transition-all duration-300 hover:shadow-lg hover:shadow-primary/10 relative overflow-hidden">
-                    <div
-                      className="absolute top-0 left-0 right-0 h-0.5"
-                      style={{ background: "linear-gradient(90deg, transparent, hsl(340 82% 60%), transparent)" }}
-                    />
-                    <CardContent className="p-6 flex flex-col gap-4">
-                      <div className="flex items-start justify-between">
-                        <div className="flex items-center gap-3">
-                          <motion.div className="p-3 rounded-xl bg-primary/10 border border-primary/20" whileHover={{ rotate: [0, -10, 10, 0] }} transition={{ duration: 0.5 }}>
-                            <Monitor className="text-primary" size={26} />
-                          </motion.div>
-                          <div>
-                            <h2 className="font-semibold text-lg leading-tight">{m.name}</h2>
-                            <p className="text-sm text-muted-foreground font-mono">{m.ip}</p>
-                          </div>
-                        </div>
-                        {!isPublicHttps && (
-                          <div className="flex items-center gap-2">
-                            <motion.span className={`h-3 w-3 rounded-full ${statusDot(s)}`} animate={s === "online" ? { scale: [1, 1.3, 1] } : {}} transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }} />
-                            <span className={`text-xs font-medium ${si.cls}`}>{si.text}</span>
-                          </div>
-                        )}
-                      </div>
+              <div className="fixed inset-0 z-[70] flex items-center justify-center p-4 pointer-events-none">
+                <motion.div
+                  className="w-full max-w-[340px] rounded-2xl border border-white/10 bg-card/95 backdrop-blur-xl shadow-2xl overflow-hidden pointer-events-auto flex flex-col"
+                  initial={{ opacity: 0, scale: 0.95, y: 10 }}
+                  animate={{ opacity: 1, scale: 1, y: 0 }}
+                  exit={{ opacity: 0, scale: 0.95, y: 10 }}
+                  transition={{ type: "spring", stiffness: 300, damping: 25 }}
+                >
+                  <div className="h-1 w-full bg-gradient-primary" />
 
-                      <div className="mt-2 flex flex-col gap-2">
-                        <Button 
-                          className="w-full gap-2 font-medium" 
-                          style={{ background: "linear-gradient(135deg, hsl(340 82% 55%), hsl(340 72% 45%))" }} 
-                          onClick={() => openPanel(m)}
-                          disabled={connectingMachine === m.ip}
-                        >
-                          {connectingMachine === m.ip ? (
-                            <RefreshCw className="animate-spin" size={16} />
-                          ) : (
-                            <FolderOpen size={16} />
-                          )}
-                          {connectingMachine === m.ip ? "Conectando..." : "Ver Arquivos"}
-                        </Button>
+                  {/* Header Modal */}
+                  <div className="flex items-center justify-between p-4 border-b border-border">
+                    <div>
+                      <h3 className="font-semibold text-sm">{anydeskMachine.name}</h3>
+                      <p className="text-[10px] text-muted-foreground uppercase tracking-widest mt-0.5">Acesso AnyDesk</p>
+                    </div>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-8 w-8 rounded-full"
+                      onClick={() => setAnydeskMachine(null)}
+                    >
+                      <X size={16} />
+                    </Button>
+                  </div>
+
+                  {/* Body Modal */}
+                  <div className="p-5 space-y-4">
+                    <Button
+                      className="w-full h-12 rounded-xl text-sm font-semibold bg-gradient-primary shadow-[0_4px_14px_0_rgba(236,72,153,0.3)] active:scale-[0.98] transition-all text-white border-0"
+                      onClick={() => window.open(`anydesk:${anydeskMachine.anydeskId}`, "_self")}
+                    >
+                      Abrir Aplicativo AnyDesk
+                    </Button>
+                    
+                    <div className="p-3 bg-white/5 border border-white/10 rounded-xl space-y-3">
+                      <p className="text-[11px] text-muted-foreground text-center">Ou use o ID exclusivo da máquina:</p>
+                      
+                      <div className="flex items-center gap-2">
+                        <code className="flex-1 h-10 flex items-center justify-center text-sm font-mono bg-black/40 rounded-lg text-primary tracking-widest border border-white/5">
+                          {anydeskMachine.anydeskId}
+                        </code>
                         <Button
                           variant="outline"
-                          className="w-full gap-2 font-medium border-primary/30 hover:bg-primary/10 hover:border-primary/50"
-                          onClick={() => setAnydeskMachine(m)}
+                          size="icon"
+                          className="h-10 w-10 shrink-0 border-white/10 bg-white/5 hover:bg-white/10"
+                          onClick={() => copyToClipboard(anydeskMachine.anydeskId, "Código")}
                         >
-                          🖥️ Acessar Remotamente
+                          <Copy size={16} />
                         </Button>
                       </div>
-                    </CardContent>
-                  </Card>
+                    </div>
+                  </div>
                 </motion.div>
-              </motion.div>
-            );
-          })}
-        </motion.div>
+              </div>
+            </>
+          )}
+        </AnimatePresence>
 
-      </main>
-
-      <motion.footer className="border-t border-border px-6 py-4 z-10" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.5 }}>
-        <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-2 text-sm text-muted-foreground">
-          <p>Rede protegida via ZeroTier | 4 dispositivos monitorados</p>
-          <p>Última atualização: {lastCheck ? formatTime(lastCheck) : "Verificando..."}</p>
-        </div>
-      </motion.footer>
-
-      {/* Modal Acesso Remoto */}
-      <AnimatePresence>
-        {anydeskMachine && (
-          <>
-            <motion.div
-              className="fixed inset-0 z-[60]"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              onClick={() => setAnydeskMachine(null)}
-            >
-              <div className="absolute inset-0 bg-black/80 backdrop-blur-md" />
-            </motion.div>
-
-            <motion.div
-              className="fixed z-[70] top-1/2 left-1/2 w-[90vw] max-w-md rounded-2xl border border-border bg-card overflow-hidden"
-              initial={{ opacity: 0, scale: 0.9, x: "-50%", y: "-50%" }}
-              animate={{ opacity: 1, scale: 1, x: "-50%", y: "-50%" }}
-              exit={{ opacity: 0, scale: 0.9, x: "-50%", y: "-50%" }}
-              transition={{ type: "spring", stiffness: 300, damping: 25 }}
-            >
-              <div
-                className="absolute top-0 left-0 right-0 h-0.5"
-                style={{ background: "linear-gradient(90deg, transparent, hsl(340 82% 60%), transparent)" }}
+        {/* Panel Iframe Container */}
+        <AnimatePresence mode="wait">
+          {activeMachine && (
+            <>
+              <motion.div 
+                className="fixed inset-0 z-40 bg-black/90 backdrop-blur-xl" 
+                initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} 
+                onClick={() => setActiveMachine(null)} 
               />
 
-              {/* Header */}
-              <div className="flex items-center justify-between px-6 py-4 border-b border-border bg-secondary/30">
-                <div className="flex items-center gap-3">
-                  <div className="p-2 rounded-lg bg-primary/15">
-                    <Monitor className="text-primary" size={20} />
-                  </div>
-                  <div>
-                    <h3 className="font-semibold">{anydeskMachine.name}</h3>
-                    <p className="text-xs text-muted-foreground">Acesso Remoto</p>
-                  </div>
-                </div>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="h-8 w-8 hover:bg-destructive/20 hover:text-destructive"
-                  onClick={() => setAnydeskMachine(null)}
-                >
-                  <X size={16} />
-                </Button>
-              </div>
-
-              {/* Body */}
-              <div className="px-6 py-6 space-y-4">
-                <div className="flex flex-col gap-3">
-                  <Button
-                    className="w-full gap-2 font-semibold text-base py-6"
-                    style={{ background: "linear-gradient(135deg, hsl(340 82% 55%), hsl(340 72% 45%))" }}
-                    onClick={() => {
-                      window.open(`anydesk:${anydeskMachine.anydeskId}`, "_self");
-                    }}
-                  >
-                    <ExternalLink size={18} />
-                    Conectar (Via App)
-                  </Button>
-
-                  <Button
-                    variant="outline"
-                    className="w-full gap-2 font-semibold text-base py-6 border-primary/30 hover:bg-primary/10"
-                    onClick={() => {
-                      copyToClipboard(anydeskMachine.anydeskId, "Código AnyDesk");
-                      window.open(`https://start.anydesk.com/`, "_blank");
-                    }}
-                  >
-                    <ExternalLink size={18} />
-                    Acessar via Web
-                  </Button>
-                </div>
-
-                <div className="rounded-lg bg-secondary/40 border border-border p-4 space-y-2">
-                  <p className="text-xs text-muted-foreground leading-relaxed">
-                    📱 <strong>No celular ou sem o app instalado?</strong>
-                  </p>
-                  <p className="text-xs text-muted-foreground leading-relaxed">
-                    Baixe o aplicativo gratuito, abra e digite o código abaixo para conectar:
-                  </p>
-                  <div className="flex items-center gap-2 mt-2">
-                    <code className="flex-1 text-sm font-mono bg-background/60 px-3 py-2 rounded-md text-foreground text-center tracking-widest">
-                      {anydeskMachine.anydeskId}
-                    </code>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      className="shrink-0"
-                      onClick={() => copyToClipboard(anydeskMachine.anydeskId, "Código")}
-                    >
-                      <Copy size={14} />
-                    </Button>
-                  </div>
-                  <div className="flex gap-2 mt-3">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      className="flex-1 text-xs"
-                      onClick={() => window.open("https://anydesk.com/pt/downloads", "_blank")}
-                    >
-                      💻 PC/Mac
-                    </Button>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      className="flex-1 text-xs"
-                      onClick={() => window.open("https://play.google.com/store/apps/details?id=com.anydesk.anydeskandroid", "_blank")}
-                    >
-                      📱 Android
-                    </Button>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      className="flex-1 text-xs"
-                      onClick={() => window.open("https://apps.apple.com/app/anydesk-remote-desktop/id1176131273", "_blank")}
-                    >
-                      🍎 iPhone
-                    </Button>
-                  </div>
-                </div>
-              </div>
-            </motion.div>
-          </>
-        )}
-      </AnimatePresence>
-
-      {/* Painel File Browser */}
-      <AnimatePresence mode="wait">
-        {activeMachine && (
-          <>
-            <motion.div className="fixed inset-0 z-40" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.4 }} onClick={() => setActiveMachine(null)}>
-              <div className="absolute inset-0 bg-black/70 backdrop-blur-md" />
-            </motion.div>
-
-            <motion.div
-              className={`fixed z-50 flex flex-col overflow-hidden border border-border bg-card ${
-                isFullscreen ? "inset-3 rounded-2xl" : "top-3 right-3 bottom-3 rounded-2xl"
-              }`}
-              style={!isFullscreen ? { width: "70vw" } : undefined}
-              initial={{ x: "110%", opacity: 0, scale: 0.9 }}
-              animate={{ x: 0, opacity: 1, scale: 1 }}
-              exit={{ x: "110%", opacity: 0, scale: 0.9 }}
-              transition={{ type: "spring", stiffness: 200, damping: 28, mass: 0.8 }}
-            >
               <motion.div
-                className="absolute top-0 left-0 right-0 h-0.5 z-10"
-                style={{ background: "linear-gradient(90deg, transparent, hsl(340 82% 60%), transparent)" }}
-                initial={{ scaleX: 0 }}
-                animate={{ scaleX: 1 }}
-                transition={{ delay: 0.3, duration: 0.6, ease: "easeOut" }}
-              />
-
-              <motion.div className="flex items-center justify-between px-5 py-3 border-b border-border bg-secondary/30 shrink-0" initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.15, duration: 0.3 }}>
-                <div className="flex items-center gap-3">
-                  <motion.div className="p-2 rounded-lg bg-primary/15" initial={{ scale: 0 }} animate={{ scale: 1 }} transition={{ delay: 0.2, type: "spring", stiffness: 300 }}>
-                    <FolderOpen className="text-primary" size={18} />
-                  </motion.div>
-                  <motion.div initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.25 }}>
-                    <h3 className="font-semibold text-sm">
-                      {activeMachine.name}
-                      <span className="text-muted-foreground font-normal ml-2">— Arquivos</span>
-                    </h3>
-                    <p className="text-xs text-muted-foreground font-mono">{activeMachine.ip}:8080</p>
-                  </motion.div>
+                className={`fixed z-50 flex flex-col overflow-hidden bg-card border-white/10 ${
+                  isFullscreen ? "inset-0" : "inset-x-0 bottom-0 top-[10dvh] rounded-t-2xl border-t shadow-[0_-10px_40px_rgba(0,0,0,0.5)]"
+                }`}
+                initial={{ y: "100%" }}
+                animate={{ y: 0 }}
+                exit={{ y: "100%" }}
+                transition={{ type: "spring", stiffness: 300, damping: 30 }}
+              >
+                {!isFullscreen && (
+                  <div className="flex justify-center pt-2 pb-1 bg-card">
+                    <div className="w-12 h-1.5 rounded-full bg-white/20" />
+                  </div>
+                )}
+                <div className="flex items-center justify-between px-4 py-3 border-b border-border bg-card shrink-0">
+                  <div className="flex flex-col">
+                    <h3 className="font-semibold text-sm">{activeMachine.name}</h3>
+                    <p className="text-[10px] text-muted-foreground font-mono">{activeMachine.ip}:8080</p>
+                  </div>
+                  <div className="flex items-center gap-1">
+                    <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-foreground" onClick={() => setIframeKey((k) => k + 1)}>
+                      <RefreshCw size={16} />
+                    </Button>
+                    <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-foreground hidden sm:flex" onClick={() => setIsFullscreen(!isFullscreen)}>
+                      {isFullscreen ? <Minimize2 size={16} /> : <Maximize2 size={16} />}
+                    </Button>
+                    <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-white bg-white/5" onClick={() => setActiveMachine(null)}>
+                      <X size={18} />
+                    </Button>
+                  </div>
                 </div>
-                <motion.div className="flex items-center gap-1" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.3 }}>
-                  <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => setIframeKey((k) => k + 1)} title="Recarregar">
-                    <RefreshCw size={14} />
-                  </Button>
-                  <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => setIsFullscreen(!isFullscreen)} title={isFullscreen ? "Reduzir" : "Tela cheia"}>
-                    {isFullscreen ? <Minimize2 size={14} /> : <Maximize2 size={14} />}
-                  </Button>
-                  <Button variant="ghost" size="icon" className="h-8 w-8 hover:bg-destructive/20 hover:text-destructive" onClick={() => setActiveMachine(null)} title="Fechar">
-                    <X size={16} />
-                  </Button>
-                </motion.div>
-              </motion.div>
 
-              <motion.div className="flex-1 relative bg-secondary/10" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.35, duration: 0.4 }}>
-                <motion.div className="absolute inset-0 flex flex-col items-center justify-center gap-4 z-10 pointer-events-none" initial={{ opacity: 1 }} animate={{ opacity: 0 }} transition={{ delay: 2, duration: 0.5 }}>
-                  <motion.div className="w-12 h-12 rounded-full border-2 border-primary/30 border-t-primary" animate={{ rotate: 360 }} transition={{ duration: 1, repeat: Infinity, ease: "linear" }} />
-                  <p className="text-sm text-muted-foreground">Conectando a {activeMachine.name}...</p>
-                </motion.div>
-
-                <iframe
-                  key={iframeKey}
-                  src={`${getMachineUrl(activeMachine)}${authToken ? `/?auth=${encodeURIComponent(authToken)}` : ''}`}
-                  className="absolute inset-0 w-full h-full border-0"
-                  title={`Arquivos — ${activeMachine.name}`}
-                  sandbox="allow-same-origin allow-scripts allow-forms allow-popups"
-                />
+                <div className="flex-1 relative bg-black">
+                  <iframe
+                    key={iframeKey}
+                    src={`${getMachineUrl(activeMachine)}${authToken ? `/?auth=${encodeURIComponent(authToken)}` : ''}`}
+                    className="absolute inset-0 w-full h-full border-0"
+                    title={`Arquivos — ${activeMachine.name}`}
+                    sandbox="allow-same-origin allow-scripts allow-forms allow-popups"
+                  />
+                </div>
               </motion.div>
+            </>
+          )}
+        </AnimatePresence>
 
-              <motion.div className="px-4 py-2 border-t border-border bg-secondary/20 flex items-center justify-between text-xs text-muted-foreground shrink-0" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.4 }}>
-                <span>Dra. Fernanda Sarelli • Rede ZeroTier • {activeMachine.ip}</span>
-                <span>{formatTime(now)}</span>
-              </motion.div>
-            </motion.div>
-          </>
-        )}
-      </AnimatePresence>
+      </div>
     </div>
   );
 };
