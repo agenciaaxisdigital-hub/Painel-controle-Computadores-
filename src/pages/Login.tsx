@@ -1,5 +1,6 @@
 import { useState, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
+import { supabase } from "@/integrations/supabase/client";
 import Hyperspeed from "@/components/Hyperspeed";
 
 const APP_TITLE = "Sistema de Gestão Política";
@@ -32,13 +33,22 @@ export default function Login() {
   const [password, setPassword] = useState(() => localStorage.getItem("saved_pass") || "");
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
   const [remember, setRemember] = useState(() => !!localStorage.getItem("saved_user"));
 
   const preset = useMemo(() => hyperspeedPreset, []);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
+    setError("");
     setLoading(true);
+    const email = username.toLowerCase().replace(/\s+/g, "") + "@painel.sarelli.com";
+    const { error: authError } = await supabase.auth.signInWithPassword({ email, password });
+    setLoading(false);
+    if (authError) {
+      setError("Usuário ou senha incorretos.");
+      return;
+    }
     if (remember) {
       localStorage.setItem("saved_user", username);
       localStorage.setItem("saved_pass", password);
@@ -47,7 +57,6 @@ export default function Login() {
       localStorage.removeItem("saved_pass");
     }
     navigate("/");
-    setLoading(false);
   };
 
   return (
@@ -96,6 +105,10 @@ export default function Login() {
               </button>
             </div>
           </div>
+
+          {error && (
+            <div className="text-sm text-red-400 bg-red-400/10 rounded-lg p-3 text-center">{error}</div>
+          )}
 
           <div className="flex items-center gap-2">
             <input type="checkbox" id="remember" checked={remember} onChange={(e) => setRemember(e.target.checked)}
