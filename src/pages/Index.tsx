@@ -166,10 +166,10 @@ const Index = () => {
   }, [toast]);
 
   const formatDate = (d: Date) =>
-    d.toLocaleDateString("pt-BR", { year: "numeric", month: "long", day: "numeric" });
+    d.toLocaleDateString("pt-BR", { year: "numeric", month: "long", day: "numeric", timeZone: "America/Sao_Paulo" });
 
   const formatTime = (d: Date) =>
-    d.toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" });
+    d.toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit", timeZone: "America/Sao_Paulo" });
 
   const statusDot = (s: "online" | "offline" | "checking") => {
     if (s === "online") return "bg-[hsl(var(--noc-green))] shadow-[0_0_8px_hsl(var(--noc-green)/0.7)]";
