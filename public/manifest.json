@@ -1,6 +1,6 @@
 {
-  "short_name": "Painel Sarelli",
-  "name": "Painel Dra. Fernanda Sarelli",
+  "short_name": "Computadores",
+  "name": "Computadores - Dra. Fernanda Sarelli",
   "icons": [
     {
       "src": "/favicon.ico",
@@ -11,5 +11,6 @@
   "start_url": ".",
   "display": "standalone",
   "theme_color": "#ec4899",
-  "background_color": "#0f0f0f"
+  "background_color": "#0f0f0f",
+  "description": "Gestão de Parque Tecnológico"
 }

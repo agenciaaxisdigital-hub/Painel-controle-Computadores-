@@ -204,16 +204,12 @@ const Index = () => {
           <div className="absolute top-0 left-0 w-full h-[1.5px] bg-gradient-header" />
           <div className="px-5 py-4 flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-full p-[2px] bg-gradient-primary shrink-0">
-                <img 
-                  src="https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?ixlib=rb-4.0.3&auto=format&fit=crop&w=128&q=80" 
-                  alt="Dra. Fernanda" 
-                  className="w-full h-full object-cover rounded-full border border-black/20"
-                />
+              <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center border border-primary/20 shrink-0">
+                <Monitor className="text-primary" size={22} />
               </div>
               <div className="flex flex-col">
-                <h1 className="text-xl font-bold tracking-tight leading-tight">Painel Sarelli</h1>
-                <p className="text-[10px] text-muted-foreground uppercase tracking-widest font-medium">Gestão Política</p>
+                <h1 className="text-xl font-bold tracking-tight leading-tight">Gestão de Computadores</h1>
+                <p className="text-[10px] text-muted-foreground uppercase tracking-widest font-medium">Rede Dra. Fernanda Sarelli</p>
               </div>
             </div>
             
